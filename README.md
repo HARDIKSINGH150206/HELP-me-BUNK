@@ -1,4 +1,4 @@
-# Acharya ERP Attendance Tracker
+# HELP-me-BUNK
 
 A Python tool to scrape attendance data from Acharya ERP and calculate safe bunking strategies.
 
