@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HELP-me-BUNK - Login</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -49,7 +51,7 @@
             content: '';
             position: fixed;
             inset: 0;
-            background: 
+            background:
                 radial-gradient(ellipse 80% 50% at 20% 40%, rgba(148, 137, 121, 0.08), transparent),
                 radial-gradient(ellipse 60% 40% at 80% 20%, rgba(0, 212, 170, 0.05), transparent);
             pointer-events: none;
@@ -170,8 +172,15 @@
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .form-title {
@@ -211,7 +220,8 @@
             margin-bottom: 8px;
         }
 
-        input, select {
+        input,
+        select {
             width: 100%;
             padding: 14px 18px;
             background: var(--bg-layer-1);
@@ -223,7 +233,8 @@
             transition: all 0.2s ease;
         }
 
-        input:focus, select:focus {
+        input:focus,
+        select:focus {
             outline: none;
             border-color: var(--accent);
             box-shadow: 0 0 0 3px var(--accent-glow);
@@ -334,7 +345,9 @@
         }
 
         @keyframes spin {
-            to { transform: rotate(360deg); }
+            to {
+                transform: rotate(360deg);
+            }
         }
 
         /* Auth toggle link */
@@ -376,6 +389,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="setup-container" id="container">
         <div class="setup-header">
@@ -576,7 +590,7 @@
             document.getElementById('steps-indicator').classList.add('visible');
             document.getElementById('container').classList.add('wide');
             document.getElementById('header-subtitle').textContent = 'Configure your semester details to get started';
-            
+
             // Update step indicators
             document.getElementById('step1-indicator').classList.add('active');
         }
@@ -584,7 +598,7 @@
         function showStatus(elementId, type, message) {
             const statusEl = document.getElementById(elementId);
             statusEl.className = `status-message ${type}`;
-            statusEl.innerHTML = type === 'loading' 
+            statusEl.innerHTML = type === 'loading'
                 ? `<div class="mini-spinner"></div>${message}`
                 : message;
         }
@@ -592,27 +606,27 @@
         async function doLogin() {
             const username = document.getElementById('login-username').value.trim();
             const password = document.getElementById('login-password').value;
-            
+
             if (!username || !password) {
                 showStatus('login-status', 'error', 'Please enter both username and password');
                 return;
             }
-            
+
             const btn = document.getElementById('loginBtn');
             btn.disabled = true;
             btn.innerHTML = '<div class="mini-spinner"></div> Signing in...';
-            
+
             try {
                 showStatus('login-status', 'loading', 'Signing in...');
-                
+
                 const response = await fetch('/api/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ username, password })
                 });
-                
+
                 const data = await response.json();
-                
+
                 if (data.success) {
                     if (data.has_setup) {
                         showStatus('login-status', 'success', 'Welcome back! Redirecting...');
@@ -641,42 +655,42 @@
             const username = document.getElementById('register-username').value.trim();
             const password = document.getElementById('register-password').value;
             const confirmPassword = document.getElementById('register-password-confirm').value;
-            
+
             if (!username || !password) {
                 showStatus('register-status', 'error', 'Please fill in all fields');
                 return;
             }
-            
+
             if (password !== confirmPassword) {
                 showStatus('register-status', 'error', 'Passwords do not match');
                 return;
             }
-            
+
             if (username.length < 3) {
                 showStatus('register-status', 'error', 'Username must be at least 3 characters');
                 return;
             }
-            
+
             if (password.length < 4) {
                 showStatus('register-status', 'error', 'Password must be at least 4 characters');
                 return;
             }
-            
+
             const btn = document.getElementById('registerBtn');
             btn.disabled = true;
             btn.innerHTML = '<div class="mini-spinner"></div> Creating account...';
-            
+
             try {
                 showStatus('register-status', 'loading', 'Creating your account...');
-                
+
                 const response = await fetch('/api/register', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ username, password })
                 });
-                
+
                 const data = await response.json();
-                
+
                 if (data.success) {
                     showStatus('register-status', 'success', 'Account created! Setting up...');
                     setTimeout(() => {
@@ -701,11 +715,11 @@
                 s.classList.remove('active');
                 s.classList.remove('completed');
             });
-            
+
             // Show current step
             document.getElementById(`step${step}`).classList.add('active');
             document.getElementById(`step${step}-indicator`).classList.add('active');
-            
+
             // Mark previous steps as completed
             for (let i = 1; i < step; i++) {
                 document.getElementById(`step${i}-indicator`).classList.add('completed');
@@ -715,33 +729,33 @@
         function validateStep1() {
             const username = document.getElementById('erp-username').value.trim();
             const password = document.getElementById('erp-password').value;
-            
+
             if (!username || !password) {
                 showStatus('step1-status', 'error', 'Please enter both username and password');
                 return;
             }
-            
+
             // Store credentials
             sessionStorage.setItem('erp_username', username);
             sessionStorage.setItem('erp_password', password);
-            
+
             goToStep(2);
         }
 
         function validateStep2() {
             const startDate = document.getElementById('semesterStart').value;
             const endDate = document.getElementById('semesterEnd').value;
-            
+
             if (!startDate || !endDate) {
                 showStatus('step2-status', 'error', 'Please select both start and end dates');
                 return false;
             }
-            
+
             if (new Date(startDate) >= new Date(endDate)) {
                 showStatus('step2-status', 'error', 'End date must be after start date');
                 return false;
             }
-            
+
             return true;
         }
 
@@ -750,11 +764,11 @@
             if (!validateStep2()) {
                 return;
             }
-            
+
             const submitBtn = document.getElementById('submitBtn');
             submitBtn.disabled = true;
             submitBtn.innerHTML = '<div class="mini-spinner"></div> Setting up...';
-            
+
             const config = {
                 username: sessionStorage.getItem('erp_username'),
                 password: sessionStorage.getItem('erp_password'),
@@ -763,18 +777,18 @@
                 current_semester: document.getElementById('currentSemester').value,
                 target_percentage: document.getElementById('targetPercentage').value
             };
-            
+
             try {
                 showStatus('step2-status', 'loading', 'Saving configuration and fetching attendance...');
-                
+
                 const response = await fetch('/api/setup', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(config)
                 });
-                
+
                 const data = await response.json();
-                
+
                 if (data.success) {
                     showStatus('step2-status', 'success', 'Setup complete! Redirecting to dashboard...');
                     sessionStorage.removeItem('erp_username');
@@ -795,7 +809,7 @@
         }
 
         // Handle Enter key for login/register forms
-        document.addEventListener('keypress', function(e) {
+        document.addEventListener('keypress', function (e) {
             if (e.key === 'Enter') {
                 if (document.getElementById('auth-login').classList.contains('active')) {
                     doLogin();
@@ -811,7 +825,7 @@
             const today = new Date();
             const fourMonthsLater = new Date(today);
             fourMonthsLater.setMonth(fourMonthsLater.getMonth() + 4);
-            
+
             document.getElementById('semesterStart').value = today.toISOString().split('T')[0];
             document.getElementById('semesterEnd').value = fourMonthsLater.toISOString().split('T')[0];
         };

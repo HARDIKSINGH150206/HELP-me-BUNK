@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HELP-me-BUNK</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -53,7 +55,7 @@
             content: '';
             position: fixed;
             inset: 0;
-            background: 
+            background:
                 radial-gradient(ellipse 80% 50% at 20% 40%, rgba(148, 137, 121, 0.08), transparent),
                 radial-gradient(ellipse 60% 40% at 80% 20%, rgba(0, 212, 170, 0.05), transparent),
                 radial-gradient(ellipse 50% 30% at 60% 80%, rgba(148, 137, 121, 0.06), transparent);
@@ -65,13 +67,16 @@
         ::-webkit-scrollbar {
             width: 8px;
         }
+
         ::-webkit-scrollbar-track {
             background: var(--bg-layer-1);
         }
+
         ::-webkit-scrollbar-thumb {
             background: var(--bg-layer-3);
             border-radius: 4px;
         }
+
         ::-webkit-scrollbar-thumb:hover {
             background: var(--accent);
         }
@@ -308,9 +313,17 @@
             margin-bottom: 6px;
         }
 
-        .hero-stat-value.success { color: var(--success); }
-        .hero-stat-value.danger { color: var(--danger); }
-        .hero-stat-value.accent { color: var(--accent-light); }
+        .hero-stat-value.success {
+            color: var(--success);
+        }
+
+        .hero-stat-value.danger {
+            color: var(--danger);
+        }
+
+        .hero-stat-value.accent {
+            color: var(--accent-light);
+        }
 
         .hero-stat-label {
             font-size: 12px;
@@ -374,9 +387,20 @@
             border-radius: 50%;
         }
 
-        .quick-stat-dot.success { background: var(--success); box-shadow: 0 0 12px var(--success); }
-        .quick-stat-dot.warning { background: var(--warning); box-shadow: 0 0 12px var(--warning); }
-        .quick-stat-dot.danger { background: var(--danger); box-shadow: 0 0 12px var(--danger); }
+        .quick-stat-dot.success {
+            background: var(--success);
+            box-shadow: 0 0 12px var(--success);
+        }
+
+        .quick-stat-dot.warning {
+            background: var(--warning);
+            box-shadow: 0 0 12px var(--warning);
+        }
+
+        .quick-stat-dot.danger {
+            background: var(--danger);
+            box-shadow: 0 0 12px var(--danger);
+        }
 
         .quick-stat-label {
             font-size: 13px;
@@ -468,9 +492,17 @@
             height: 3px;
         }
 
-        .subject-card.safe::before { background: linear-gradient(90deg, var(--success), transparent); }
-        .subject-card.warning::before { background: linear-gradient(90deg, var(--warning), transparent); }
-        .subject-card.danger::before { background: linear-gradient(90deg, var(--danger), transparent); }
+        .subject-card.safe::before {
+            background: linear-gradient(90deg, var(--success), transparent);
+        }
+
+        .subject-card.warning::before {
+            background: linear-gradient(90deg, var(--warning), transparent);
+        }
+
+        .subject-card.danger::before {
+            background: linear-gradient(90deg, var(--danger), transparent);
+        }
 
         .subject-card:hover {
             border-color: var(--border-hover);
@@ -522,9 +554,17 @@
             line-height: 1;
         }
 
-        .percentage-value.safe { color: var(--success); }
-        .percentage-value.warning { color: var(--warning); }
-        .percentage-value.danger { color: var(--danger); }
+        .percentage-value.safe {
+            color: var(--success);
+        }
+
+        .percentage-value.warning {
+            color: var(--warning);
+        }
+
+        .percentage-value.danger {
+            color: var(--danger);
+        }
 
         .percentage-change {
             font-size: 11px;
@@ -585,9 +625,17 @@
             transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .progress-fill.safe { background: linear-gradient(90deg, var(--success), #00ffcc); }
-        .progress-fill.warning { background: linear-gradient(90deg, var(--warning), #ffd700); }
-        .progress-fill.danger { background: linear-gradient(90deg, var(--danger), #ff8888); }
+        .progress-fill.safe {
+            background: linear-gradient(90deg, var(--success), #00ffcc);
+        }
+
+        .progress-fill.warning {
+            background: linear-gradient(90deg, var(--warning), #ffd700);
+        }
+
+        .progress-fill.danger {
+            background: linear-gradient(90deg, var(--danger), #ff8888);
+        }
 
         .recommendation {
             display: flex;
@@ -769,7 +817,7 @@
             gap: 12px;
         }
 
-        .modal-footer > div {
+        .modal-footer>div {
             display: flex;
             gap: 8px;
         }
@@ -868,7 +916,9 @@
         }
 
         @keyframes spin {
-            to { transform: rotate(360deg); }
+            to {
+                transform: rotate(360deg);
+            }
         }
 
         .loading-text {
@@ -881,16 +931,16 @@
             .hero {
                 grid-template-columns: 1fr;
             }
-            
+
             .quick-card {
                 order: -1;
             }
-            
+
             .quick-stats {
                 flex-direction: row;
                 flex-wrap: wrap;
             }
-            
+
             .quick-stat {
                 flex: 1;
                 min-width: 150px;
@@ -901,24 +951,24 @@
             .navbar {
                 padding: 0 16px;
             }
-            
+
             .main-wrapper {
                 padding: 16px;
             }
-            
+
             .hero-main {
                 flex-direction: column;
                 gap: 24px;
             }
-            
+
             .hero-stats {
                 width: 100%;
             }
-            
+
             .subjects-grid {
                 grid-template-columns: 1fr;
             }
-            
+
             .section-header {
                 flex-direction: column;
                 align-items: flex-start;
@@ -934,13 +984,14 @@
             .hero-stats {
                 grid-template-columns: 1fr;
             }
-            
+
             .subject-stats {
                 grid-template-columns: 1fr;
             }
         }
     </style>
 </head>
+
 <body>
     <!-- SVG Gradient Definition -->
     <svg width="0" height="0">
@@ -988,9 +1039,7 @@
                 <div class="circular-chart">
                     <svg viewBox="0 0 180 180">
                         <circle class="bg" cx="90" cy="90" r="78"></circle>
-                        <circle class="progress" cx="90" cy="90" r="78" 
-                            stroke-dasharray="490" 
-                            stroke-dashoffset="490"
+                        <circle class="progress" cx="90" cy="90" r="78" stroke-dasharray="490" stroke-dashoffset="490"
                             id="mainCircle"></circle>
                     </svg>
                     <div class="circular-chart-center">
@@ -1076,18 +1125,18 @@
         function filterSubjects(filter, btn) {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             btn.classList.add('active');
-            
+
             const filtered = allSubjects.filter(s => {
                 if (filter === 'all') return true;
                 return getStatusClass(s.percentage) === filter;
             });
-            
+
             renderSubjects(filtered);
         }
 
         function renderSubjects(subjects) {
             const container = document.getElementById('subjectsContainer');
-            
+
             if (subjects.length === 0) {
                 container.innerHTML = `
                     <div class="empty-state">
@@ -1100,23 +1149,23 @@
             }
 
             let html = '<div class="subjects-grid">';
-            
+
             subjects.forEach(subject => {
                 const pct = subject.percentage;
                 const status = getStatusClass(pct);
                 const present = subject.present;
                 const total = subject.total;
                 const absent = total - present;
-                
+
                 // Use smart calculations from API if available
                 const hasSmartData = subject.remaining_classes !== undefined && subject.remaining_classes > 0;
                 const remainingClasses = subject.remaining_classes || 0;
                 const classesNeeded = subject.classes_needed_75 || 0;
                 const canSkip = subject.can_skip || 0;
                 const projectedPct = subject.projected_percentage || pct;
-                
+
                 let recText = '', recIcon = '', extraInfo = '';
-                
+
                 if (hasSmartData) {
                     // Smart recommendations based on timetable
                     if (pct >= 75 && canSkip > 0) {
@@ -1132,7 +1181,7 @@
                         recText = `${remainingClasses} classes remaining this semester`;
                         recIcon = 'fa-calendar';
                     }
-                    
+
                     // Extra info for projected percentage
                     if (projectedPct !== pct) {
                         extraInfo = `<div class="projected-info">Projected if attending all: <strong>${projectedPct.toFixed(1)}%</strong></div>`;
@@ -1212,22 +1261,27 @@
 
         async function loadData() {
             try {
-                const response = await fetch('/api/latest-data');
-                
+                console.log('Loading data...');
+                const response = await fetch('/api/latest-data', {
+                    credentials: 'include'
+                });
+                console.log('Response status:', response.status);
+
                 // Check for auth errors - redirect to login
-                if (response.status === 401) {
+                if (response.status === 401 || response.status === 302) {
                     window.location.href = '/';
                     return;
                 }
-                
+
                 const data = await response.json();
+                console.log('Data received:', data);
 
                 if (data.error) {
                     document.getElementById('subjectsContainer').innerHTML = `
                         <div class="empty-state">
-                            <div class="empty-icon"><i class="fas fa-database"></i></div>
-                            <h2>No Data Available</h2>
-                            <p>${data.error}</p>
+                            <div class="empty-icon"><i class="fas fa-spinner fa-spin"></i></div>
+                            <h2>Loading Data...</h2>
+                            <p>Data is being scraped from ERP. This page will auto-refresh.</p>
                             <button class="btn btn-primary" onclick="showAddSubjectForm()">
                                 <i class="fas fa-plus"></i> Add Subject Manually
                             </button>
@@ -1242,7 +1296,10 @@
                     document.getElementById('dangerCount').textContent = '0';
                     document.getElementById('avgValue').textContent = '0%';
                     document.getElementById('overallDetail').textContent = '0/0 classes';
-                    document.getElementById('lastUpdated').textContent = 'No data yet';
+                    document.getElementById('lastUpdated').textContent = 'Waiting for data...';
+
+                    // Auto-poll for data every 3 seconds when no data available
+                    setTimeout(loadData, 3000);
                     return;
                 }
 
@@ -1340,7 +1397,7 @@
 
         async function deleteSubject() {
             const subjectName = document.getElementById('editSubjectName').textContent;
-            
+
             if (!confirm(`Are you sure you want to delete "${subjectName}"?`)) {
                 return;
             }
@@ -1365,24 +1422,19 @@
             }
         }
 
-        // Close modal when clicking outside
-        document.getElementById('editModal').addEventListener('click', function(e) {
-            if (e.target === this) closeEditModal();
-        });
-
         // Add subject manually
         async function showAddSubjectForm() {
             const subjectName = prompt('Enter subject name:');
             if (!subjectName) return;
-            
+
             const present = parseInt(prompt('Enter present classes:', '0') || '0');
             const total = parseInt(prompt('Enter total classes:', '1') || '1');
-            
+
             if (total <= 0) {
                 alert('Total classes must be greater than 0');
                 return;
             }
-            
+
             try {
                 const response = await fetch('/api/add-subject', {
                     method: 'POST',
@@ -1390,7 +1442,7 @@
                     body: JSON.stringify({ subject: subjectName, present, total })
                 });
                 const data = await response.json();
-                
+
                 if (data.success) {
                     loadData();
                 } else {
@@ -1411,7 +1463,10 @@
         // Load config and display username
         async function loadConfig() {
             try {
-                const response = await fetch('/api/config');
+                const response = await fetch('/api/config', {
+                    credentials: 'include'
+                });
+                if (!response.ok) return;
                 const data = await response.json();
                 if (data.username) {
                     document.getElementById('usernameDisplay').textContent = data.username;
@@ -1422,9 +1477,20 @@
             }
         }
 
-        // Initialize
-        loadConfig();
-        loadData();
+        // Initialize - run when DOM is ready
+        document.addEventListener('DOMContentLoaded', function () {
+            console.log('Dashboard loaded, fetching data...');
+            loadConfig();
+            loadData();
+            
+            // Close modal when clicking outside
+            const modal = document.getElementById('editModal');
+            if (modal) {
+                modal.addEventListener('click', function (e) {
+                    if (e.target === this) closeEditModal();
+                });
+            }
+        });
     </script>
 
     <!-- Edit Modal -->
@@ -1462,4 +1528,5 @@
         </div>
     </div>
 </body>
+
 </html>
