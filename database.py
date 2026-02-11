@@ -18,6 +18,8 @@ DATABASE_NAME = 'help_me_bunk'
 if not MONGODB_URI:
     print("⚠ MONGODB_URI environment variable not set!")
     print("  Set it with: export MONGODB_URI='your-connection-string'")
+    # Use a dummy value to prevent crash during import (will fail on actual connection)
+    MONGODB_URI = "mongodb://localhost:27017/"
 
 # Global client connection
 _client = None
@@ -28,8 +30,14 @@ def get_db():
     """Get database connection"""
     global _client, _db
     if _db is None:
-        _client = MongoClient(MONGODB_URI)
-        _db = _client[DATABASE_NAME]
+        try:
+            _client = MongoClient(MONGODB_URI, serverSelectionTimeoutMS=5000)
+            _db = _client[DATABASE_NAME]
+            # Test connection
+            _client.server_info()
+        except Exception as e:
+            print(f"⚠ MongoDB connection error: {e}")
+            raise
     return _db
 
 

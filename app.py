@@ -24,7 +24,11 @@ app.secret_key = os.environ.get('SECRET_KEY', 'your-secret-key-change-this-in-pr
 app.permanent_session_lifetime = timedelta(days=7)
 
 # Initialize database
-db.init_db()
+try:
+    db.init_db()
+except Exception as e:
+    print(f"⚠ Database initialization failed: {e}")
+    print("  Make sure MONGODB_URI environment variable is set correctly")
 
 # Store scraper status per user
 scraper_status = {}

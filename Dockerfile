@@ -33,5 +33,5 @@ COPY . .
 # Expose port
 EXPOSE 10000
 
-# Run the application with gunicorn
-CMD ["gunicorn", "--bind", "0.0.0.0:10000", "--timeout", "120", "--workers", "2", "app:app"]
+# Run the application with gunicorn - use shell form to expand PORT variable
+CMD gunicorn --bind 0.0.0.0:${PORT:-10000} --timeout 120 --workers 2 app:app
