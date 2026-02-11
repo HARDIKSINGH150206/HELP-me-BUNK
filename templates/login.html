@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance Tracker - Setup</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-base: #1a1d21;
+            --bg-layer-1: #222831;
+            --bg-layer-2: #393E46;
+            --bg-layer-3: #4d5259;
+            --bg-glass: rgba(57, 62, 70, 0.85);
+            --text-primary: #EEEEEE;
+            --text-secondary: rgba(238, 238, 238, 0.75);
+            --text-muted: rgba(238, 238, 238, 0.5);
+            --accent: #948979;
+            --accent-light: #b5a89a;
+            --accent-glow: rgba(148, 137, 121, 0.4);
+            --success: #00d4aa;
+            --danger: #ff6b6b;
+            --border: rgba(148, 137, 121, 0.15);
+            --border-hover: rgba(148, 137, 121, 0.4);
+            --radius: 16px;
+            --radius-sm: 10px;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-base);
+            min-height: 100vh;
+            color: var(--text-primary);
+            line-height: 1.6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: 
+                radial-gradient(ellipse 80% 50% at 20% 40%, rgba(148, 137, 121, 0.08), transparent),
+                radial-gradient(ellipse 60% 40% at 80% 20%, rgba(0, 212, 170, 0.05), transparent);
+            pointer-events: none;
+        }
+
+        .setup-container {
+            width: 100%;
+            max-width: 900px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .setup-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .logo {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-light));
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            color: var(--bg-base);
+            margin: 0 auto 20px;
+            box-shadow: 0 8px 32px var(--accent-glow);
+        }
+
+        .setup-header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .setup-header h1 span {
+            color: var(--accent);
+        }
+
+        .setup-header p {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        /* Steps indicator */
+        .steps {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        .step {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--text-muted);
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .step.active {
+            color: var(--text-primary);
+        }
+
+        .step.completed {
+            color: var(--success);
+        }
+
+        .step-number {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--bg-layer-2);
+            border: 2px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .step.active .step-number {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: var(--bg-base);
+        }
+
+        .step.completed .step-number {
+            background: var(--success);
+            border-color: var(--success);
+            color: var(--bg-base);
+        }
+
+        /* Form card */
+        .form-card {
+            background: var(--bg-glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 40px;
+            display: none;
+        }
+
+        .form-card.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .form-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .form-title i {
+            color: var(--accent);
+        }
+
+        .form-subtitle {
+            color: var(--text-muted);
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 14px 18px;
+            background: var(--bg-layer-1);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            font-size: 14px;
+            font-family: inherit;
+            transition: all 0.2s ease;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+
+        input::placeholder {
+            color: var(--text-muted);
+        }
+
+        /* Buttons */
+        .form-actions {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 32px;
+            padding-top: 24px;
+            border-top: 1px solid var(--border);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 28px;
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent), var(--accent-light));
+            color: var(--bg-base);
+            box-shadow: 0 4px 16px var(--accent-glow);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 24px var(--accent-glow);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: var(--bg-layer-2);
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-layer-3);
+            color: var(--text-primary);
+        }
+
+        /* Status message */
+        .status-message {
+            padding: 14px 18px;
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .status-message.error {
+            display: block;
+            background: rgba(255, 107, 107, 0.15);
+            border: 1px solid rgba(255, 107, 107, 0.3);
+            color: var(--danger);
+        }
+
+        .status-message.success {
+            display: block;
+            background: rgba(0, 212, 170, 0.15);
+            border: 1px solid rgba(0, 212, 170, 0.3);
+            color: var(--success);
+        }
+
+        .status-message.loading {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(148, 137, 121, 0.15);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+        }
+
+        .mini-spinner {
+            width: 18px;
+            height: 18px;
+            border: 2px solid var(--bg-layer-3);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Quick add subjects */
+        .quick-subjects {
+            margin-top: 20px;
+            padding: 16px;
+            background: var(--bg-layer-1);
+            border-radius: var(--radius-sm);
+        }
+
+        .quick-subjects-title {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+        }
+
+        .quick-subjects-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .quick-subject {
+            padding: 8px 14px;
+            background: var(--bg-layer-2);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            font-size: 12px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .quick-subject:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .quick-subject.selected {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: var(--bg-base);
+        }
+
+        /* Classes per day input */
+        .classes-input-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .classes-input {
+            width: 60px;
+            text-align: center;
+            padding: 10px;
+        }
+
+        .classes-label {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .steps {
+                gap: 20px;
+            }
+
+            .step span {
+                display: none;
+            }
+
+            .form-card {
+                padding: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="setup-container">
+        <div class="setup-header">
+            <div class="logo">
+                <i class="fas fa-chart-pie"></i>
+            </div>
+            <h1>Attendance<span>Tracker</span></h1>
+            <p>Configure your semester details to get started</p>
+        </div>
+
+        <!-- Steps Indicator -->
+        <div class="steps">
+            <div class="step active" id="step1-indicator">
+                <div class="step-number">1</div>
+                <span>ERP Login</span>
+            </div>
+            <div class="step" id="step2-indicator">
+                <div class="step-number">2</div>
+                <span>Semester Dates</span>
+            </div>
+        </div>
+
+        <!-- Step 1: ERP Login -->
+        <div class="form-card active" id="step1">
+            <div class="form-title">
+                <i class="fas fa-user-lock"></i>
+                ERP Credentials
+            </div>
+            <div class="form-subtitle">Enter your college ERP login details to fetch attendance data</div>
+
+            <div id="step1-status" class="status-message"></div>
+
+            <div class="form-group">
+                <label for="username">ERP Username / Student ID</label>
+                <input type="text" id="username" placeholder="Enter your student ID">
+            </div>
+
+            <div class="form-group">
+                <label for="password">ERP Password</label>
+                <input type="password" id="password" placeholder="Enter your password">
+            </div>
+
+            <div class="form-actions">
+                <div></div>
+                <button class="btn btn-primary" onclick="validateStep1()">
+                    Continue
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Step 2: Semester Dates -->
+        <div class="form-card" id="step2">
+            <div class="form-title">
+                <i class="fas fa-calendar-alt"></i>
+                Semester Duration
+            </div>
+            <div class="form-subtitle">Set the first and last working days of your current semester</div>
+
+            <div id="step2-status" class="status-message"></div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="semesterStart">Semester Start Date</label>
+                    <input type="date" id="semesterStart">
+                </div>
+                <div class="form-group">
+                    <label for="semesterEnd">Semester End Date</label>
+                    <input type="date" id="semesterEnd">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="currentSemester">Current Semester</label>
+                    <select id="currentSemester">
+                        <option value="1">1st Semester</option>
+                        <option value="2">2nd Semester</option>
+                        <option value="3">3rd Semester</option>
+                        <option value="4">4th Semester</option>
+                        <option value="5">5th Semester</option>
+                        <option value="6">6th Semester</option>
+                        <option value="7">7th Semester</option>
+                        <option value="8">8th Semester</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="targetPercentage">Target Attendance %</label>
+                    <select id="targetPercentage">
+                        <option value="75">75% (Minimum)</option>
+                        <option value="80">80%</option>
+                        <option value="85">85%</option>
+                        <option value="90">90%</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button class="btn btn-secondary" onclick="goToStep(1)">
+                    <i class="fas fa-arrow-left"></i>
+                    Back
+                </button>
+                <button class="btn btn-primary" onclick="submitSetup()" id="submitBtn">
+                    <i class="fas fa-rocket"></i>
+                    Launch Dashboard
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function goToStep(step) {
+            // Hide all steps
+            document.querySelectorAll('.form-card').forEach(card => card.classList.remove('active'));
+            document.querySelectorAll('.step').forEach(s => {
+                s.classList.remove('active');
+                s.classList.remove('completed');
+            });
+            
+            // Show current step
+            document.getElementById(`step${step}`).classList.add('active');
+            document.getElementById(`step${step}-indicator`).classList.add('active');
+            
+            // Mark previous steps as completed
+            for (let i = 1; i < step; i++) {
+                document.getElementById(`step${i}-indicator`).classList.add('completed');
+            }
+        }
+
+        function showStatus(stepId, type, message) {
+            const statusEl = document.getElementById(`${stepId}-status`);
+            statusEl.className = `status-message ${type}`;
+            statusEl.innerHTML = type === 'loading' 
+                ? `<div class="mini-spinner"></div>${message}`
+                : message;
+        }
+
+        function validateStep1() {
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            
+            if (!username || !password) {
+                showStatus('step1', 'error', 'Please enter both username and password');
+                return;
+            }
+            
+            // Store credentials
+            sessionStorage.setItem('erp_username', username);
+            sessionStorage.setItem('erp_password', password);
+            
+            goToStep(2);
+        }
+
+        function validateStep2() {
+            const startDate = document.getElementById('semesterStart').value;
+            const endDate = document.getElementById('semesterEnd').value;
+            
+            if (!startDate || !endDate) {
+                showStatus('step2', 'error', 'Please select both start and end dates');
+                return;
+            }
+            
+            if (new Date(startDate) >= new Date(endDate)) {
+                showStatus('step2', 'error', 'End date must be after start date');
+                return;
+            }
+            
+            return true;
+        }
+
+        async function submitSetup() {
+            // Validate step 2 first
+            if (!validateStep2()) {
+                return;
+            }
+            
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<div class="mini-spinner"></div> Setting up...';
+            
+            const config = {
+                username: sessionStorage.getItem('erp_username'),
+                password: document.getElementById('password').value,
+                semester_start: document.getElementById('semesterStart').value,
+                semester_end: document.getElementById('semesterEnd').value,
+                current_semester: document.getElementById('currentSemester').value,
+                target_percentage: document.getElementById('targetPercentage').value
+            };
+            
+            try {
+                showStatus('step2', 'loading', 'Saving configuration and fetching attendance...');
+                
+                const response = await fetch('/api/setup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(config)
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showStatus('step2', 'success', 'Setup complete! Redirecting to dashboard...');
+                    setTimeout(() => {
+                        window.location.href = '/dashboard';
+                    }, 1500);
+                } else {
+                    showStatus('step2', 'error', data.error || 'Setup failed. Please try again.');
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="fas fa-rocket"></i> Launch Dashboard';
+                }
+            } catch (error) {
+                showStatus('step2', 'error', 'Connection error: ' + error.message);
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-rocket"></i> Launch Dashboard';
+            }
+        }
+
+        // Initialize on load
+        window.onload = () => {
+            // Set default dates (current month to +4 months)
+            const today = new Date();
+            const fourMonthsLater = new Date(today);
+            fourMonthsLater.setMonth(fourMonthsLater.getMonth() + 4);
+            
+            document.getElementById('semesterStart').value = today.toISOString().split('T')[0];
+            document.getElementById('semesterEnd').value = fourMonthsLater.toISOString().split('T')[0];
+        };
+    </script>
+</body>
+</html>
