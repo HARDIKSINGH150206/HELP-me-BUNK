@@ -7,3 +7,5 @@ pymongo[srv]
 python-dotenv
 gunicorn
 certifi
+pytesseract
+Pillow

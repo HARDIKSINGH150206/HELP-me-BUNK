@@ -14,6 +14,15 @@ import json
 import os
 from datetime import datetime, timedelta
 import glob
+import re
+import io
+import base64
+try:
+    import pytesseract
+    from PIL import Image
+    OCR_AVAILABLE = True
+except ImportError:
+    OCR_AVAILABLE = False
 from attendance_calculator import AttendanceCalculator
 import threading
 import time
@@ -658,6 +667,126 @@ def save_timetable_route():
         
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/timetable/ocr', methods=['POST'])
+@login_required
+def ocr_timetable():
+    """Extract timetable from uploaded image using OCR"""
+    if not OCR_AVAILABLE:
+        return jsonify({'error': 'OCR not available. Install pytesseract and Pillow.'}), 500
+    
+    try:
+        user_id = session['user_id']
+        data = request.json
+        
+        if not data or 'image' not in data:
+            return jsonify({'error': 'No image provided'}), 400
+        
+        # Decode base64 image
+        image_data = data['image']
+        if ',' in image_data:
+            image_data = image_data.split(',')[1]  # Remove data:image/...;base64, prefix
+        
+        image_bytes = base64.b64decode(image_data)
+        image = Image.open(io.BytesIO(image_bytes))
+        
+        # Run OCR
+        text = pytesseract.image_to_string(image)
+        
+        # Parse the text to extract timetable entries
+        entries = parse_timetable_text(text)
+        
+        # Save entries if any found
+        if entries:
+            for entry in entries:
+                db.add_timetable_entry(
+                    user_id,
+                    entry['subject'],
+                    entry['day'],
+                    entry.get('start_time', '09:00'),
+                    entry.get('end_time', '10:00')
+                )
+        
+        return jsonify({
+            'success': True,
+            'extracted_text': text,
+            'entries_found': len(entries),
+            'entries': entries
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+def parse_timetable_text(text):
+    """
+    Parse OCR text to extract timetable entries.
+    Looks for patterns like:
+    - Day names (Monday, Tuesday, etc.)
+    - Time patterns (09:00, 9:00 AM, 9-10, etc.)
+    - Subject names (words near times)
+    """
+    entries = []
+    lines = text.strip().split('\n')
+    
+    day_names = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
+    day_abbrevs = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']
+    
+    current_day = None
+    
+    # Time pattern: matches 9:00, 09:00, 9:00 AM, 9AM, 9-10, etc.
+    time_pattern = re.compile(r'(\d{1,2})[:\.](\d{2})\s*(am|pm)?|' +
+                              r'(\d{1,2})\s*(am|pm)|' +
+                              r'(\d{1,2})\s*[-–]\s*(\d{1,2})', re.IGNORECASE)
+    
+    for line in lines:
+        line_lower = line.lower().strip()
+        if not line_lower:
+            continue
+        
+        # Check if line contains a day name
+        for idx, day in enumerate(day_names):
+            if day in line_lower or day_abbrevs[idx] in line_lower.split():
+                current_day = idx
+                break
+        
+        # Look for time patterns
+        time_match = time_pattern.search(line)
+        if time_match and current_day is not None:
+            # Extract subject - remove time and day, keep the rest
+            subject = re.sub(time_pattern, '', line)
+            for day in day_names + day_abbrevs:
+                subject = re.sub(r'\b' + day + r'\b', '', subject, flags=re.IGNORECASE)
+            subject = re.sub(r'[^\w\s&-]', '', subject).strip()
+            
+            if subject and len(subject) > 2:
+                # Parse the time
+                start_time = '09:00'
+                end_time = '10:00'
+                
+                if time_match.group(1):  # HH:MM format
+                    hour = int(time_match.group(1))
+                    minute = time_match.group(2)
+                    am_pm = time_match.group(3)
+                    if am_pm and am_pm.lower() == 'pm' and hour < 12:
+                        hour += 12
+                    start_time = f"{hour:02d}:{minute}"
+                    end_time = f"{hour+1:02d}:{minute}"
+                elif time_match.group(6):  # Range format (9-10)
+                    start_hour = int(time_match.group(6))
+                    end_hour = int(time_match.group(7))
+                    start_time = f"{start_hour:02d}:00"
+                    end_time = f"{end_hour:02d}:00"
+                
+                entries.append({
+                    'subject': subject[:50],  # Limit length
+                    'day': current_day,
+                    'start_time': start_time,
+                    'end_time': end_time
+                })
+    
+    return entries
 
 
 if __name__ == '__main__':

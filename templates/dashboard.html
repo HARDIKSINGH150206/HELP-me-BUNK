@@ -1039,6 +1039,21 @@
             background: var(--danger);
         }
 
+        .calendar-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .calendar-actions .btn-secondary {
+            background: rgba(148, 137, 121, 0.3);
+            border: 1px solid var(--primary);
+        }
+
+        .calendar-actions .btn-secondary:hover {
+            background: rgba(148, 137, 121, 0.5);
+        }
+
         .weekly-calendar {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
@@ -1306,9 +1321,18 @@
                         <span>Don't Skip</span>
                     </div>
                 </div>
-                <button class="btn btn-primary" onclick="showAddClassModal()">
-                    <i class="fas fa-plus"></i> Add Class
-                </button>
+                <div class="calendar-actions">
+                    <input type="file" id="timetableUpload" accept="image/*" style="display: none;" onchange="handleTimetableUpload(event)">
+                    <button class="btn btn-secondary" onclick="document.getElementById('timetableUpload').click()">
+                        <i class="fas fa-camera"></i> Upload Photo
+                    </button>
+                    <button class="btn btn-primary" onclick="showAddClassModal()">
+                        <i class="fas fa-plus"></i> Add Class
+                    </button>
+                    <button class="btn btn-danger" onclick="clearTimetable()" style="margin-left: 10px;">
+                        <i class="fas fa-trash"></i> Clear All
+                    </button>
+                </div>
             </div>
 
             <div class="weekly-calendar" id="weeklyCalendar">
@@ -1729,7 +1753,7 @@
 
         function renderCalendar(timetable) {
             const container = document.getElementById('weeklyCalendar');
-            
+
             // Group classes by day
             const byDay = {};
             dayNames.forEach((_, idx) => byDay[idx] = []);
@@ -1744,7 +1768,7 @@
 
             dayNames.forEach((dayName, idx) => {
                 const classes = byDay[idx] || [];
-                
+
                 // Sort by start time
                 classes.sort((a, b) => {
                     if (!a.start_time) return 1;
@@ -1769,8 +1793,8 @@
                     classes.forEach(cls => {
                         const statusClass = cls.can_bunk ? 'bunkable' : 'risky';
                         const statusIcon = cls.can_bunk ? 'fa-check-circle' : 'fa-exclamation-circle';
-                        const statusText = cls.can_bunk 
-                            ? `Can skip (${cls.classes_to_spare} left)` 
+                        const statusText = cls.can_bunk
+                            ? `Can skip (${cls.classes_to_spare} left)`
                             : `Don't skip (${cls.current_pct.toFixed(1)}%)`;
 
                         html += `
@@ -1869,6 +1893,79 @@
             }
         }
 
+        // Handle timetable image upload
+        async function handleTimetableUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            // Show loading state
+            const btn = document.querySelector('.calendar-actions .btn-secondary');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+            btn.disabled = true;
+
+            try {
+                // Convert to base64
+                const base64 = await new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(file);
+                });
+
+                // Send to OCR endpoint
+                const response = await fetch('/api/timetable/ocr', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ image: base64 })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    if (data.entries_found > 0) {
+                        alert(`Found ${data.entries_found} classes from image!\n\nExtracted text:\n${data.extracted_text.substring(0, 300)}...`);
+                        loadTimetable();
+                    } else {
+                        alert('No classes found in image.\n\nExtracted text:\n' + data.extracted_text.substring(0, 500));
+                    }
+                } else {
+                    alert('OCR Error: ' + data.error);
+                }
+            } catch (error) {
+                alert('Upload error: ' + error.message);
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                event.target.value = '';  // Reset file input
+            }
+        }
+
+        // Clear all timetable entries
+        async function clearTimetable() {
+            if (!confirm('Are you sure you want to delete ALL classes from your timetable?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/timetable/clear', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include'
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    loadTimetable();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                alert('Error clearing timetable: ' + error.message);
+            }
+        }
+
         // Load config and display username
         async function loadConfig() {
             try {
@@ -1891,7 +1988,7 @@
             console.log('Dashboard loaded, fetching data...');
             loadConfig();
             loadData();
-            
+
             // Close modal when clicking outside
             const modal = document.getElementById('editModal');
             if (modal) {
