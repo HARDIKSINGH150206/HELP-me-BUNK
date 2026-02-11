@@ -9,6 +9,7 @@ from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 from bson.objectid import ObjectId
 import os
+import certifi
 
 # MongoDB Atlas connection string - MUST set as environment variable
 # Example: export MONGODB_URI="mongodb+srv://user:pass@cluster.mongodb.net/?appName=HELPmeBUNK"
@@ -31,7 +32,11 @@ def get_db():
     global _client, _db
     if _db is None:
         try:
-            _client = MongoClient(MONGODB_URI, serverSelectionTimeoutMS=5000)
+            _client = MongoClient(
+                MONGODB_URI, 
+                serverSelectionTimeoutMS=5000,
+                tlsCAFile=certifi.where()
+            )
             _db = _client[DATABASE_NAME]
             # Test connection
             _client.server_info()

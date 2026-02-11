@@ -3,6 +3,7 @@ webdriver-manager
 colorama
 flask
 werkzeug
-pymongo
+pymongo[srv]
 python-dotenv
 gunicorn
+certifi
