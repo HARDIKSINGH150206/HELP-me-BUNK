@@ -989,6 +989,172 @@
                 grid-template-columns: 1fr;
             }
         }
+
+        /* Calendar Styles */
+        .calendar-container {
+            display: none;
+            margin-top: 24px;
+        }
+
+        .calendar-container.active {
+            display: block;
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .calendar-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .calendar-legend {
+            display: flex;
+            gap: 16px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .legend-dot.bunkable {
+            background: var(--success);
+        }
+
+        .legend-dot.risky {
+            background: var(--danger);
+        }
+
+        .weekly-calendar {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 12px;
+        }
+
+        .day-column {
+            background: var(--bg-layer-1);
+            border-radius: var(--radius);
+            padding: 16px;
+            border: 1px solid var(--border);
+            min-height: 200px;
+        }
+
+        .day-header {
+            font-weight: 600;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border);
+            color: var(--accent);
+        }
+
+        .class-slot {
+            background: var(--bg-layer-2);
+            border-radius: var(--radius-sm);
+            padding: 10px;
+            margin-bottom: 8px;
+            border-left: 3px solid var(--border);
+            transition: all 0.2s;
+        }
+
+        .class-slot.bunkable {
+            border-left-color: var(--success);
+            background: var(--success-bg);
+        }
+
+        .class-slot.risky {
+            border-left-color: var(--danger);
+            background: var(--danger-bg);
+        }
+
+        .class-time {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .class-name {
+            font-weight: 500;
+            font-size: 0.85rem;
+            margin-bottom: 4px;
+        }
+
+        .class-status {
+            font-size: 0.7rem;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .class-status.bunkable {
+            color: var(--success);
+        }
+
+        .class-status.risky {
+            color: var(--danger);
+        }
+
+        .add-class-btn {
+            width: 100%;
+            padding: 8px;
+            background: transparent;
+            border: 2px dashed var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 8px;
+        }
+
+        .add-class-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .view-toggle {
+            display: flex;
+            gap: 8px;
+            margin-left: auto;
+        }
+
+        .view-btn {
+            padding: 8px 16px;
+            background: var(--bg-layer-2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .view-btn.active {
+            background: var(--accent);
+            color: var(--bg-base);
+            border-color: var(--accent);
+        }
+
+        @media (max-width: 1024px) {
+            .weekly-calendar {
+                grid-template-columns: 1fr;
+            }
+
+            .day-column {
+                min-height: auto;
+            }
+        }
     </style>
 </head>
 
@@ -1094,21 +1260,59 @@
             </div>
         </div>
 
-        <!-- Subjects Section -->
+        <!-- View Toggle -->
         <div class="section-header">
-            <h2 class="section-title">Subject Details</h2>
-            <div class="tabs">
-                <button class="tab active" onclick="filterSubjects('all', this)">All</button>
-                <button class="tab" onclick="filterSubjects('safe', this)">Safe</button>
-                <button class="tab" onclick="filterSubjects('warning', this)">Warning</button>
-                <button class="tab" onclick="filterSubjects('danger', this)">At Risk</button>
+            <h2 class="section-title">Your Schedule</h2>
+            <div class="view-toggle">
+                <button class="view-btn active" onclick="showView('attendance', this)">
+                    <i class="fas fa-list"></i> Attendance
+                </button>
+                <button class="view-btn" onclick="showView('calendar', this)">
+                    <i class="fas fa-calendar-alt"></i> Calendar
+                </button>
             </div>
         </div>
 
-        <div id="subjectsContainer">
-            <div class="loading">
-                <div class="spinner"></div>
-                <div class="loading-text">Loading attendance data...</div>
+        <!-- Attendance View -->
+        <div id="attendanceView" class="attendance-view">
+            <div class="section-header">
+                <h2 class="section-title">Subject Details</h2>
+                <div class="tabs">
+                    <button class="tab active" onclick="filterSubjects('all', this)">All</button>
+                    <button class="tab" onclick="filterSubjects('safe', this)">Safe</button>
+                    <button class="tab" onclick="filterSubjects('warning', this)">Warning</button>
+                    <button class="tab" onclick="filterSubjects('danger', this)">At Risk</button>
+                </div>
+            </div>
+
+            <div id="subjectsContainer">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <div class="loading-text">Loading attendance data...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Calendar View -->
+        <div id="calendarView" class="calendar-container">
+            <div class="calendar-header">
+                <div class="calendar-legend">
+                    <div class="legend-item">
+                        <div class="legend-dot bunkable"></div>
+                        <span>Can Bunk</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-dot risky"></div>
+                        <span>Don't Skip</span>
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="showAddClassModal()">
+                    <i class="fas fa-plus"></i> Add Class
+                </button>
+            </div>
+
+            <div class="weekly-calendar" id="weeklyCalendar">
+                <!-- Days will be populated by JavaScript -->
             </div>
         </div>
     </div>
@@ -1457,6 +1661,211 @@
         function logout() {
             if (confirm('Are you sure you want to logout?')) {
                 window.location.href = '/logout';
+            }
+        }
+
+        // View Toggle Function
+        function showView(view, btn) {
+            document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            if (view === 'calendar') {
+                document.getElementById('attendanceView').style.display = 'none';
+                document.getElementById('calendarView').classList.add('active');
+                loadTimetable();
+            } else {
+                document.getElementById('attendanceView').style.display = 'block';
+                document.getElementById('calendarView').classList.remove('active');
+            }
+        }
+
+        // Timetable/Calendar Functions
+        let timetableData = [];
+        const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
+        async function loadTimetable() {
+            try {
+                const response = await fetch('/api/timetable', {
+                    credentials: 'include'
+                });
+
+                if (!response.ok) {
+                    renderEmptyCalendar();
+                    return;
+                }
+
+                const data = await response.json();
+                timetableData = data.timetable || [];
+                renderCalendar(timetableData);
+
+            } catch (error) {
+                console.log('Could not load timetable:', error);
+                renderEmptyCalendar();
+            }
+        }
+
+        function renderEmptyCalendar() {
+            const container = document.getElementById('weeklyCalendar');
+            let html = '';
+
+            dayNames.forEach((day, idx) => {
+                html += `
+                    <div class="day-column">
+                        <div class="day-header">${day}</div>
+                        <div class="empty-day">
+                            <p style="color: var(--text-muted); font-size: 0.85rem; text-align: center; padding: 20px 0;">
+                                No classes
+                            </p>
+                        </div>
+                        <button class="add-class-btn" onclick="showAddClassModal(${idx})">
+                            <i class="fas fa-plus"></i> Add
+                        </button>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        function renderCalendar(timetable) {
+            const container = document.getElementById('weeklyCalendar');
+            
+            // Group classes by day
+            const byDay = {};
+            dayNames.forEach((_, idx) => byDay[idx] = []);
+
+            timetable.forEach(entry => {
+                if (entry.day !== null && entry.day !== undefined) {
+                    byDay[entry.day].push(entry);
+                }
+            });
+
+            let html = '';
+
+            dayNames.forEach((dayName, idx) => {
+                const classes = byDay[idx] || [];
+                
+                // Sort by start time
+                classes.sort((a, b) => {
+                    if (!a.start_time) return 1;
+                    if (!b.start_time) return -1;
+                    return a.start_time.localeCompare(b.start_time);
+                });
+
+                html += `
+                    <div class="day-column">
+                        <div class="day-header">${dayName}</div>
+                `;
+
+                if (classes.length === 0) {
+                    html += `
+                        <div class="empty-day">
+                            <p style="color: var(--text-muted); font-size: 0.85rem; text-align: center; padding: 20px 0;">
+                                No classes
+                            </p>
+                        </div>
+                    `;
+                } else {
+                    classes.forEach(cls => {
+                        const statusClass = cls.can_bunk ? 'bunkable' : 'risky';
+                        const statusIcon = cls.can_bunk ? 'fa-check-circle' : 'fa-exclamation-circle';
+                        const statusText = cls.can_bunk 
+                            ? `Can skip (${cls.classes_to_spare} left)` 
+                            : `Don't skip (${cls.current_pct.toFixed(1)}%)`;
+
+                        html += `
+                            <div class="class-slot ${statusClass}" onclick="deleteClassPrompt('${cls.subject.replace(/'/g, "\\'")}', ${idx}, '${cls.start_time}')">
+                                <div class="class-time">
+                                    ${cls.start_time || '?'} - ${cls.end_time || '?'}
+                                </div>
+                                <div class="class-name">${cls.subject}</div>
+                                <div class="class-status ${statusClass}">
+                                    <i class="fas ${statusIcon}"></i>
+                                    ${statusText}
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+
+                html += `
+                        <button class="add-class-btn" onclick="showAddClassModal(${idx})">
+                            <i class="fas fa-plus"></i> Add
+                        </button>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        function showAddClassModal(dayIndex = 0) {
+            const subject = prompt('Enter subject name:');
+            if (!subject) return;
+
+            const startTime = prompt('Enter start time (e.g., 09:00):', '09:00');
+            if (!startTime) return;
+
+            const endTime = prompt('Enter end time (e.g., 10:00):', '10:00');
+            if (!endTime) return;
+
+            const day = dayIndex !== undefined ? dayIndex : parseInt(prompt('Enter day (0=Mon, 1=Tue, ..., 6=Sun):', '0') || '0');
+
+            addTimetableEntry(subject, day, startTime, endTime);
+        }
+
+        async function addTimetableEntry(subject, day, startTime, endTime) {
+            try {
+                const response = await fetch('/api/timetable/add', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        subject: subject,
+                        day: day,
+                        start_time: startTime,
+                        end_time: endTime
+                    })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    loadTimetable();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                alert('Error adding class: ' + error.message);
+            }
+        }
+
+        function deleteClassPrompt(subject, day, startTime) {
+            if (confirm(`Delete "${subject}" at ${startTime}?`)) {
+                deleteTimetableEntry(subject, day, startTime);
+            }
+        }
+
+        async function deleteTimetableEntry(subject, day, startTime) {
+            try {
+                const response = await fetch('/api/timetable/delete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        subject: subject,
+                        day: day,
+                        start_time: startTime
+                    })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    loadTimetable();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                alert('Error deleting class: ' + error.message);
             }
         }
 

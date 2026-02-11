@@ -504,6 +504,162 @@ def delete_subject_route():
         return jsonify({'error': str(e)}), 500
 
 
+# ============== TIMETABLE ROUTES ==============
+
+@app.route('/api/timetable')
+@login_required
+def get_timetable_route():
+    """Get user's timetable with bunkability info"""
+    try:
+        user_id = session['user_id']
+        
+        # Get timetable entries
+        timetable = db.get_timetable(user_id)
+        
+        # Get attendance data to calculate bunkability
+        attendance = db.get_attendance(user_id)
+        attendance_map = {s['subject']: s for s in attendance}
+        
+        # Get user's target percentage
+        config = get_user_config(user_id)
+        target_pct = config.get('target_percentage', 75) if config else 75
+        
+        # Enhance timetable with bunkability
+        enhanced_timetable = []
+        for entry in timetable:
+            subject = entry.get('subject', '')
+            
+            # Find matching attendance record
+            att = None
+            for att_subject, att_data in attendance_map.items():
+                if subject.lower() in att_subject.lower() or att_subject.lower() in subject.lower():
+                    att = att_data
+                    break
+            
+            can_bunk = False
+            current_pct = 0
+            classes_to_spare = 0
+            
+            if att:
+                present = att.get('present', 0)
+                total = att.get('total', 0)
+                current_pct = att.get('percentage', 0)
+                
+                # Calculate if can bunk: (present / total+1) >= target
+                if total > 0:
+                    pct_if_skip = (present / (total + 1)) * 100
+                    can_bunk = pct_if_skip >= target_pct
+                    
+                    # Calculate how many classes can be skipped
+                    # present / (total + x) >= target/100
+                    # present >= (target/100) * (total + x)
+                    # x <= (present * 100 / target) - total
+                    if target_pct > 0:
+                        classes_to_spare = int((present * 100 / target_pct) - total)
+                        classes_to_spare = max(0, classes_to_spare)
+            
+            enhanced_timetable.append({
+                'subject': subject,
+                'day': entry.get('day'),
+                'day_name': ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'][entry.get('day', 0)] if entry.get('day') is not None else 'Unknown',
+                'start_time': entry.get('start_time'),
+                'end_time': entry.get('end_time'),
+                'can_bunk': can_bunk,
+                'current_pct': current_pct,
+                'classes_to_spare': classes_to_spare
+            })
+        
+        return jsonify({
+            'success': True,
+            'timetable': enhanced_timetable,
+            'target_percentage': target_pct
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/timetable/add', methods=['POST'])
+@login_required
+def add_timetable_entry_route():
+    """Add a timetable entry manually"""
+    try:
+        user_id = session['user_id']
+        data = request.json
+        
+        subject = data.get('subject', '').strip()
+        day = data.get('day')  # 0-6
+        start_time = data.get('start_time', '').strip()
+        end_time = data.get('end_time', '').strip()
+        
+        if not subject or day is None or not start_time or not end_time:
+            return jsonify({'error': 'All fields required: subject, day, start_time, end_time'}), 400
+        
+        result = db.add_timetable_entry(user_id, subject, day, start_time, end_time)
+        return jsonify(result)
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/timetable/delete', methods=['POST'])
+@login_required
+def delete_timetable_entry_route():
+    """Delete a timetable entry"""
+    try:
+        user_id = session['user_id']
+        data = request.json
+        
+        subject = data.get('subject')
+        day = data.get('day')
+        start_time = data.get('start_time')
+        
+        if not all([subject, day is not None, start_time]):
+            return jsonify({'error': 'Subject, day, and start_time required'}), 400
+        
+        deleted = db.delete_timetable_entry(user_id, subject, day, start_time)
+        
+        if deleted:
+            return jsonify({'success': True, 'message': 'Entry deleted'})
+        else:
+            return jsonify({'error': 'Entry not found'}), 404
+            
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/timetable/clear', methods=['POST'])
+@login_required
+def clear_timetable_route():
+    """Clear all timetable entries"""
+    try:
+        user_id = session['user_id']
+        db.clear_timetable(user_id)
+        return jsonify({'success': True, 'message': 'Timetable cleared'})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/timetable/save', methods=['POST'])
+@login_required
+def save_timetable_route():
+    """Save multiple timetable entries (bulk save)"""
+    try:
+        user_id = session['user_id']
+        data = request.json
+        
+        entries = data.get('entries', [])
+        
+        if not entries:
+            return jsonify({'error': 'No entries provided'}), 400
+        
+        db.save_timetable(user_id, entries)
+        return jsonify({'success': True, 'message': f'Saved {len(entries)} entries'})
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
 if __name__ == '__main__':
     print("="*70)
     print("HELP-me-BUNK WEB DASHBOARD")

@@ -129,6 +129,191 @@ class AcharyaERPScraper:
             print(f"✗ Navigation failed: {e}")
             return False
     
+    def navigate_to_calendar(self):
+        """Navigate to calendar/timetable page"""
+        try:
+            calendar_url = f"{self.erp_url}/calendar"
+            self.driver.get(calendar_url)
+            time.sleep(3)
+            
+            if "calendar" in self.driver.current_url.lower():
+                print("✓ On calendar page")
+                return True
+            
+            try:
+                calendar_link = self.driver.find_element(By.PARTIAL_LINK_TEXT, "Calendar")
+                calendar_link.click()
+                time.sleep(3)
+                print("✓ Navigated to calendar page")
+                return True
+            except:
+                try:
+                    timetable_link = self.driver.find_element(By.PARTIAL_LINK_TEXT, "Timetable")
+                    timetable_link.click()
+                    time.sleep(3)
+                    print("✓ Navigated to timetable page")
+                    return True
+                except:
+                    print("⚠ Couldn't auto-navigate to calendar. Please navigate manually.")
+                    print("You have 15 seconds...")
+                    time.sleep(15)
+                    return True
+                
+        except Exception as e:
+            print(f"✗ Calendar navigation failed: {e}")
+            return False
+    
+    def extract_timetable_data(self):
+        """Extract timetable/schedule data from calendar page"""
+        timetable = []
+        
+        try:
+            print("Extracting timetable data...")
+            time.sleep(3)
+            
+            # Scroll to load all content
+            self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+            time.sleep(2)
+            self.driver.execute_script("window.scrollTo(0, 0);")
+            time.sleep(1)
+            
+            # Get page HTML for analysis
+            page_source = self.driver.page_source
+            
+            # Common selectors for calendar/timetable events
+            event_selectors = [
+                ".fc-event",  # FullCalendar events
+                ".calendar-event",
+                "[class*='event']",
+                ".fc-daygrid-event",
+                ".fc-timegrid-event",
+                ".schedule-item",
+                "[class*='schedule']",
+                ".timetable-entry",
+                "[class*='timetable']",
+                ".class-slot",
+                "td[class*='period']",
+            ]
+            
+            events = []
+            for selector in event_selectors:
+                try:
+                    found = self.driver.find_elements(By.CSS_SELECTOR, selector)
+                    if found:
+                        events.extend(found)
+                        print(f"  Found {len(found)} elements with selector: {selector}")
+                except:
+                    pass
+            
+            # Try to extract structured data from events
+            day_map = {
+                'monday': 0, 'mon': 0,
+                'tuesday': 1, 'tue': 1,
+                'wednesday': 2, 'wed': 2,
+                'thursday': 3, 'thu': 3,
+                'friday': 4, 'fri': 4,
+                'saturday': 5, 'sat': 5,
+                'sunday': 6, 'sun': 6
+            }
+            
+            processed_events = set()
+            
+            for event in events:
+                try:
+                    event_text = event.text.strip()
+                    if not event_text or event_text in processed_events:
+                        continue
+                    processed_events.add(event_text)
+                    
+                    # Try to extract event details
+                    # Look for time patterns like "09:00 - 10:00" or "9:00 AM"
+                    time_pattern = re.compile(r'(\d{1,2}:\d{2})\s*[-–to]+\s*(\d{1,2}:\d{2})', re.IGNORECASE)
+                    time_match = time_pattern.search(event_text)
+                    
+                    # Try to get day from parent elements or position
+                    day = None
+                    parent = event.find_element(By.XPATH, "..")
+                    parent_classes = parent.get_attribute("class") or ""
+                    
+                    for day_name, day_num in day_map.items():
+                        if day_name in parent_classes.lower() or day_name in event_text.lower():
+                            day = day_num
+                            break
+                    
+                    # Extract subject name (usually the main text)
+                    subject = event_text.split('\n')[0].strip()
+                    
+                    if time_match:
+                        start_time = time_match.group(1)
+                        end_time = time_match.group(2)
+                        
+                        timetable.append({
+                            'subject': subject,
+                            'day': day,
+                            'start_time': start_time,
+                            'end_time': end_time,
+                            'raw_text': event_text
+                        })
+                        print(f"  ✓ Found: {subject} at {start_time}-{end_time}")
+                    else:
+                        # Store even without time for manual processing
+                        timetable.append({
+                            'subject': subject,
+                            'day': day,
+                            'start_time': None,
+                            'end_time': None,
+                            'raw_text': event_text
+                        })
+                        
+                except Exception as e:
+                    continue
+            
+            # Alternative: Try to find a table-based timetable
+            if not timetable:
+                print("  Trying table-based extraction...")
+                tables = self.driver.find_elements(By.TAG_NAME, "table")
+                
+                for table in tables:
+                    rows = table.find_elements(By.TAG_NAME, "tr")
+                    header_cells = []
+                    
+                    for row_idx, row in enumerate(rows):
+                        cells = row.find_elements(By.CSS_SELECTOR, "td, th")
+                        
+                        # First row might be header with days
+                        if row_idx == 0:
+                            header_cells = [cell.text.strip().lower() for cell in cells]
+                            continue
+                        
+                        # Process data rows
+                        for col_idx, cell in enumerate(cells):
+                            cell_text = cell.text.strip()
+                            if cell_text and len(cell_text) > 2:
+                                # Determine day from column header
+                                day = None
+                                if col_idx < len(header_cells):
+                                    for day_name, day_num in day_map.items():
+                                        if day_name in header_cells[col_idx]:
+                                            day = day_num
+                                            break
+                                
+                                timetable.append({
+                                    'subject': cell_text.split('\n')[0],
+                                    'day': day,
+                                    'start_time': None,
+                                    'end_time': None,
+                                    'raw_text': cell_text
+                                })
+            
+            print(f"\n✓ Extracted {len(timetable)} timetable entries")
+            return timetable
+            
+        except Exception as e:
+            print(f"✗ Timetable extraction failed: {e}")
+            import traceback
+            traceback.print_exc()
+            return []
+    
     def extract_attendance_data(self):
         """Extract attendance data from Acharya ERP cards - improved accuracy"""
         attendance_data = []

@@ -54,6 +54,7 @@ def init_db():
     db.users.create_index('username', unique=True)
     db.attendance.create_index([('user_id', 1), ('subject', 1)], unique=True)
     db.scrape_history.create_index('user_id')
+    db.timetable.create_index([('user_id', 1), ('day', 1), ('start_time', 1)])
     
     print("✓ MongoDB initialized")
 
@@ -251,6 +252,80 @@ def get_last_scrape(user_id):
     if record:
         return record['scraped_at'].strftime("%Y-%m-%d %H:%M:%S")
     return None
+
+
+# ============== TIMETABLE FUNCTIONS ==============
+
+def save_timetable(user_id, timetable_entries):
+    """Save or update timetable data for a user"""
+    db = get_db()
+    
+    # Clear existing timetable for user
+    db.timetable.delete_many({'user_id': user_id})
+    
+    # Insert new entries
+    for entry in timetable_entries:
+        db.timetable.insert_one({
+            'user_id': user_id,
+            'subject': entry.get('subject'),
+            'day': entry.get('day'),  # 0=Monday, 6=Sunday
+            'start_time': entry.get('start_time'),
+            'end_time': entry.get('end_time'),
+            'raw_text': entry.get('raw_text', ''),
+            'created_at': datetime.now()
+        })
+    
+    return True
+
+
+def get_timetable(user_id):
+    """Get timetable for a user"""
+    db = get_db()
+    
+    entries = list(db.timetable.find(
+        {'user_id': user_id},
+        {'_id': 0, 'user_id': 0, 'created_at': 0}
+    ).sort([('day', 1), ('start_time', 1)]))
+    
+    return entries
+
+
+def add_timetable_entry(user_id, subject, day, start_time, end_time):
+    """Add a single timetable entry"""
+    db = get_db()
+    
+    db.timetable.insert_one({
+        'user_id': user_id,
+        'subject': subject,
+        'day': day,
+        'start_time': start_time,
+        'end_time': end_time,
+        'raw_text': f"{subject} ({start_time}-{end_time})",
+        'created_at': datetime.now()
+    })
+    
+    return {'success': True}
+
+
+def delete_timetable_entry(user_id, subject, day, start_time):
+    """Delete a timetable entry"""
+    db = get_db()
+    
+    result = db.timetable.delete_one({
+        'user_id': user_id,
+        'subject': subject,
+        'day': day,
+        'start_time': start_time
+    })
+    
+    return result.deleted_count > 0
+
+
+def clear_timetable(user_id):
+    """Clear all timetable entries for a user"""
+    db = get_db()
+    db.timetable.delete_many({'user_id': user_id})
+    return True
 
 
 # Initialize database when module is imported
