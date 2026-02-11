@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 """
-Attendance Tracker Web Dashboard
+HELP-me-BUNK Web Dashboard
 Flask web application for monitoring college attendance
+Multi-user support with SQLite database
 """
 
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for
+from functools import wraps
 import json
 import os
 from datetime import datetime, timedelta
@@ -12,209 +14,227 @@ import glob
 from attendance_calculator import AttendanceCalculator
 import threading
 import time
+import database as db
 
 app = Flask(__name__)
-app.secret_key = 'your-secret-key-change-this-in-production'
+app.secret_key = os.environ.get('SECRET_KEY', 'your-secret-key-change-this-in-production')
+app.permanent_session_lifetime = timedelta(days=7)
 
-# Configuration file path
-CONFIG_FILE = 'user_config.json'
+# Initialize database
+db.init_db()
 
-# Store scraper status
-scraper_status = {
-    'running': False,
-    'progress': '',
-    'error': None,
-    'complete': False
-}
+# Store scraper status per user
+scraper_status = {}
 
-def run_scraper_background(username, password):
+
+def get_scraper_status(user_id):
+    """Get scraper status for a specific user"""
+    if user_id not in scraper_status:
+        scraper_status[user_id] = {
+            'running': False,
+            'progress': '',
+            'error': None,
+            'complete': False
+        }
+    return scraper_status[user_id]
+
+
+def login_required(f):
+    """Decorator to require login for routes"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            if request.is_json:
+                return jsonify({'error': 'Not logged in'}), 401
+            return redirect(url_for('index'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+def run_scraper_background(user_id, username, password):
     """Run scraper in background thread"""
-    global scraper_status
     from attendance_scraper import AcharyaERPScraper
     
-    scraper_status['running'] = True
-    scraper_status['progress'] = 'Initializing...'
-    scraper_status['error'] = None
-    scraper_status['complete'] = False
+    status = get_scraper_status(user_id)
+    status['running'] = True
+    status['progress'] = 'Initializing...'
+    status['error'] = None
+    status['complete'] = False
     
     try:
         scraper = AcharyaERPScraper(username, password)
         
-        scraper_status['progress'] = 'Setting up browser...'
+        status['progress'] = 'Setting up browser...'
         scraper.setup_driver()
         
-        scraper_status['progress'] = 'Logging in...'
+        status['progress'] = 'Logging in...'
         if not scraper.login():
-            scraper_status['error'] = 'Login failed'
-            scraper_status['running'] = False
+            status['error'] = 'Login failed'
+            status['running'] = False
             return
         
-        scraper_status['progress'] = 'Navigating to attendance...'
+        status['progress'] = 'Navigating to attendance...'
         if not scraper.navigate_to_attendance():
-            scraper_status['error'] = 'Navigation failed'
-            scraper_status['running'] = False
+            status['error'] = 'Navigation failed'
+            status['running'] = False
             return
         
-        scraper_status['progress'] = 'Extracting data...'
+        status['progress'] = 'Extracting data...'
         data = scraper.extract_attendance_data()
         
         if data and len(data) > 0:
-            scraper_status['progress'] = 'Saving data...'
-            scraper.save_data(data)
-            scraper_status['progress'] = 'Complete!'
-            scraper_status['complete'] = True
+            status['progress'] = 'Saving data...'
+            # Save to database instead of file
+            subjects = []
+            for item in data:
+                subjects.append({
+                    'subject': item.get('subject'),
+                    'present': item.get('present', 0),
+                    'total': item.get('total', 0)
+                })
+            db.save_attendance(user_id, subjects)
+            status['progress'] = 'Complete!'
+            status['complete'] = True
         else:
-            scraper_status['error'] = 'No data found'
+            status['error'] = 'No data found'
         
         if scraper.driver:
             scraper.driver.quit()
             
     except Exception as e:
-        scraper_status['error'] = str(e)
+        status['error'] = str(e)
     finally:
-        scraper_status['running'] = False
+        status['running'] = False
 
 
-def load_config():
-    """Load user configuration"""
-    if os.path.exists(CONFIG_FILE):
-        with open(CONFIG_FILE, 'r') as f:
-            return json.load(f)
+def get_user_config(user_id):
+    """Get configuration for a user from database"""
+    user = db.get_user(user_id)
+    if user:
+        return {
+            'erp_username': user.get('erp_username'),
+            'semester_start': user.get('semester_start'),
+            'semester_end': user.get('semester_end'),
+            'target_percentage': user.get('target_percentage', 75),
+            'setup_complete': bool(user.get('semester_start') and user.get('semester_end'))
+        }
     return None
 
 
-def save_config(config):
-    """Save user configuration"""
-    with open(CONFIG_FILE, 'w') as f:
-        json.dump(config, f, indent=2)
-
-
-def calculate_working_days(start_date, end_date, enabled_days):
-    """Calculate number of each weekday between two dates"""
-    day_mapping = {
-        'Monday': 0, 'Tuesday': 1, 'Wednesday': 2,
-        'Thursday': 3, 'Friday': 4, 'Saturday': 5, 'Sunday': 6
-    }
-    
-    enabled_weekdays = [day_mapping[day] for day in enabled_days]
-    
-    start = datetime.strptime(start_date, '%Y-%m-%d')
-    end = datetime.strptime(end_date, '%Y-%m-%d')
-    
-    day_counts = {day: 0 for day in enabled_days}
-    
-    current = start
-    while current <= end:
-        weekday = current.weekday()
-        for day_name, day_num in day_mapping.items():
-            if day_num == weekday and day_name in enabled_days:
-                day_counts[day_name] += 1
-        current += timedelta(days=1)
-    
-    return day_counts
-
-
-def calculate_expected_classes(config):
-    """Calculate expected total classes for each subject based on timetable"""
-    timetable = config.get('timetable', {})
-    start_date = config.get('semester_start')
-    end_date = config.get('semester_end')
-    
-    if not timetable or not start_date or not end_date:
-        return {}
-    
-    enabled_days = list(timetable.keys())
-    day_counts = calculate_working_days(start_date, end_date, enabled_days)
-    
-    subject_classes = {}
-    
-    for day, subjects in timetable.items():
-        if day not in day_counts:
-            continue
-        num_days = day_counts[day]
-        for subject_info in subjects:
-            subject_name = subject_info['subject']
-            classes_per_day = subject_info['classes']
-            
-            if subject_name not in subject_classes:
-                subject_classes[subject_name] = 0
-            subject_classes[subject_name] += classes_per_day * num_days
-    
-    return subject_classes
-
-
-def calculate_remaining_classes(config, today=None):
-    """Calculate remaining classes from today to semester end"""
-    if today is None:
-        today = datetime.now().strftime('%Y-%m-%d')
-    
-    timetable = config.get('timetable', {})
-    end_date = config.get('semester_end')
-    
-    if not timetable or not end_date:
-        return {}
-    
-    enabled_days = list(timetable.keys())
-    day_counts = calculate_working_days(today, end_date, enabled_days)
-    
-    subject_remaining = {}
-    
-    for day, subjects in timetable.items():
-        if day not in day_counts:
-            continue
-        num_days = day_counts[day]
-        for subject_info in subjects:
-            subject_name = subject_info['subject']
-            classes_per_day = subject_info['classes']
-            
-            if subject_name not in subject_remaining:
-                subject_remaining[subject_name] = 0
-            subject_remaining[subject_name] += classes_per_day * num_days
-    
-    return subject_remaining
-
+# ============== ROUTES ==============
 
 @app.route('/')
 def index():
-    """Main entry - redirect to setup if not configured, else dashboard"""
-    config = load_config()
-    if config and config.get('setup_complete'):
+    """Main entry - redirect to dashboard if logged in, else login page"""
+    if 'user_id' in session:
         return redirect(url_for('dashboard'))
     return render_template('login.html')
 
 
 @app.route('/dashboard')
+@login_required
 def dashboard():
     """Serve the dashboard page"""
-    config = load_config()
-    if not config or not config.get('setup_complete'):
-        return redirect(url_for('index'))
     return render_template('dashboard.html')
 
 
+@app.route('/logout')
+def logout():
+    """Log out the current user"""
+    session.clear()
+    return redirect(url_for('index'))
+
+
+# ============== AUTH ROUTES ==============
+
+@app.route('/api/register', methods=['POST'])
+def register():
+    """Register a new user"""
+    try:
+        data = request.json
+        username = data.get('username', '').strip()
+        password = data.get('password', '')
+        
+        if not username or not password:
+            return jsonify({'error': 'Username and password required'}), 400
+        
+        if len(username) < 3:
+            return jsonify({'error': 'Username must be at least 3 characters'}), 400
+        
+        if len(password) < 4:
+            return jsonify({'error': 'Password must be at least 4 characters'}), 400
+        
+        result = db.create_user(username, password)
+        
+        if result['success']:
+            # Auto-login after registration
+            session.permanent = True
+            session['user_id'] = result['user_id']
+            session['username'] = username
+            return jsonify({'success': True, 'message': 'Account created'})
+        else:
+            return jsonify({'error': result['error']}), 400
+            
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/login', methods=['POST'])
+def login():
+    """Log in a user"""
+    try:
+        data = request.json
+        username = data.get('username', '').strip()
+        password = data.get('password', '')
+        
+        if not username or not password:
+            return jsonify({'error': 'Username and password required'}), 400
+        
+        result = db.verify_user(username, password)
+        
+        if result['success']:
+            session.permanent = True
+            session['user_id'] = result['user_id']
+            session['username'] = result['username']
+            
+            # Check if user has setup complete
+            config = get_user_config(result['user_id'])
+            has_setup = config and config.get('setup_complete')
+            
+            return jsonify({
+                'success': True, 
+                'message': 'Logged in',
+                'has_setup': has_setup
+            })
+        else:
+            return jsonify({'error': result['error']}), 401
+            
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
 @app.route('/api/setup', methods=['POST'])
+@login_required
 def setup():
     """Save user configuration from setup wizard"""
     try:
         data = request.json
+        user_id = session['user_id']
         
-        config = {
-            'username': data.get('username'),
-            'semester_start': data.get('semester_start'),
-            'semester_end': data.get('semester_end'),
-            'timetable': data.get('timetable', {}),
-            'setup_complete': True,
-            'created_at': datetime.now().isoformat()
-        }
-        
-        save_config(config)
+        # Update user config in database
+        db.update_user_config(
+            user_id,
+            erp_username=data.get('username'),
+            semester_start=data.get('semester_start'),
+            semester_end=data.get('semester_end')
+        )
         
         # Optionally scrape initial data
+        erp_username = data.get('username')
         password = data.get('password')
-        if password and config['username']:
+        if password and erp_username:
             thread = threading.Thread(
                 target=run_scraper_background, 
-                args=(config['username'], password)
+                args=(user_id, erp_username, password)
             )
             thread.daemon = True
             thread.start()
@@ -225,108 +245,91 @@ def setup():
 
 
 @app.route('/api/config')
+@login_required
 def get_config():
     """Get user configuration (without sensitive data)"""
-    config = load_config()
+    user_id = session['user_id']
+    config = get_user_config(user_id)
     if config:
-        # Remove sensitive fields
-        safe_config = {
+        return jsonify({
             'semester_start': config.get('semester_start'),
             'semester_end': config.get('semester_end'),
-            'timetable': config.get('timetable', {}),
-            'setup_complete': config.get('setup_complete', False)
-        }
-        return jsonify(safe_config)
+            'target_percentage': config.get('target_percentage', 75),
+            'setup_complete': config.get('setup_complete', False),
+            'username': session.get('username')
+        })
     return jsonify({'setup_complete': False})
 
 
 @app.route('/api/reset-config', methods=['POST'])
+@login_required
 def reset_config():
     """Reset user configuration to start fresh"""
     try:
-        if os.path.exists(CONFIG_FILE):
-            os.remove(CONFIG_FILE)
+        user_id = session['user_id']
+        # Clear user's attendance data
+        attendance = db.get_attendance(user_id)
+        for subject in attendance:
+            db.delete_subject(user_id, subject['subject'])
+        # Reset user config
+        db.update_user_config(user_id, semester_start=None, semester_end=None)
         return jsonify({'success': True, 'message': 'Configuration reset'})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
 
 @app.route('/api/latest-data')
+@login_required
 def get_latest_data():
-    """Get the most recent attendance data with smart calculations"""
+    """Get the most recent attendance data for the logged-in user"""
     try:
-        # Find most recent attendance file
-        files = glob.glob('attendance_*.json')
-        if not files:
-            return jsonify({'error': 'No data found. Please scrape first.'}), 404
+        user_id = session['user_id']
         
-        latest_file = max(files, key=os.path.getctime)
+        # Get attendance from database
+        attendance_data = db.get_attendance(user_id)
         
-        with open(latest_file, 'r') as f:
-            data = json.load(f)
+        if not attendance_data:
+            return jsonify({'error': 'No data found. Please add subjects or scrape from ERP.'}), 404
         
-        # Load config for smart calculations
-        config = load_config()
-        expected_classes = {}
-        remaining_classes = {}
+        # Load config for semester info
+        config = get_user_config(user_id)
+        target_pct = config.get('target_percentage', 75) if config else 75
         
-        if config and config.get('setup_complete'):
-            expected_classes = calculate_expected_classes(config)
-            remaining_classes = calculate_remaining_classes(config)
-        
-        # Enhance subject data with smart calculations
+        # Enhance subject data
         enhanced_subjects = []
-        for subject in data['data']:
-            enhanced = subject.copy()
-            subject_name = subject.get('subject', '')
-            present = subject.get('present', 0)
-            total = subject.get('total', 0)
-            current_pct = subject.get('percentage', 0)
+        for subject in attendance_data:
+            enhanced = {
+                'subject': subject.get('subject'),
+                'present': subject.get('present', 0),
+                'total': subject.get('total', 0),
+                'percentage': subject.get('percentage', 0)
+            }
             
-            # Get remaining classes for this subject from timetable
-            remaining = remaining_classes.get(subject_name, 0)
-            expected_total = expected_classes.get(subject_name, 0)
+            present = enhanced['present']
+            total = enhanced['total']
+            current_pct = enhanced['percentage']
             
-            # Calculate classes needed to reach 75%
-            # Formula: (present + x) / (total + remaining) >= 0.75
-            # Solving: x >= 0.75 * (total + remaining) - present
-            if remaining > 0:
-                target_attendance = 0.75
-                total_future = total + remaining
-                needed = int(target_attendance * total_future) - present
-                
-                # Ensure needed is at least 0 and at most remaining
-                needed = max(0, min(needed, remaining))
-                
-                # Calculate projected percentage if attending all remaining
-                projected_pct = ((present + remaining) / total_future) * 100 if total_future > 0 else 0
-                
-                # Calculate can skip count
-                can_skip = remaining - needed if needed <= remaining else 0
-                
-                enhanced['remaining_classes'] = remaining
-                enhanced['classes_needed_75'] = needed
-                enhanced['can_skip'] = can_skip
-                enhanced['projected_percentage'] = round(projected_pct, 2)
-                enhanced['expected_total_semester'] = expected_total
-            else:
-                enhanced['remaining_classes'] = 0
-                enhanced['classes_needed_75'] = 0
-                enhanced['can_skip'] = 0
-                enhanced['projected_percentage'] = current_pct
-                enhanced['expected_total_semester'] = expected_total
+            # Basic calculations (no timetable in multi-user version for simplicity)
+            enhanced['remaining_classes'] = 0
+            enhanced['classes_needed_75'] = 0
+            enhanced['can_skip'] = 0
+            enhanced['projected_percentage'] = current_pct
+            enhanced['expected_total_semester'] = 0
             
             enhanced_subjects.append(enhanced)
         
         # Calculate statistics
         total_subjects = len(enhanced_subjects)
-        safe_subjects = sum(1 for s in enhanced_subjects if s['percentage'] >= 75)
-        danger_subjects = sum(1 for s in enhanced_subjects if s['percentage'] < 75)
+        safe_subjects = sum(1 for s in enhanced_subjects if s['percentage'] >= target_pct)
+        danger_subjects = sum(1 for s in enhanced_subjects if s['percentage'] < target_pct)
         
-        # Calculate OVERALL attendance (total present / total classes) - not average of percentages
+        # Calculate OVERALL attendance (total present / total classes)
         total_present_all = sum(s['present'] for s in enhanced_subjects)
         total_classes_all = sum(s['total'] for s in enhanced_subjects)
         overall_attendance = (total_present_all / total_classes_all * 100) if total_classes_all > 0 else 0
+        
+        # Get last scrape time
+        last_scrape = db.get_last_scrape(user_id)
         
         # Semester info
         semester_info = None
@@ -334,12 +337,12 @@ def get_latest_data():
             semester_info = {
                 'start': config.get('semester_start'),
                 'end': config.get('semester_end'),
-                'has_timetable': bool(config.get('timetable'))
+                'has_timetable': False
             }
         
         return jsonify({
             'success': True,
-            'timestamp': data.get('date', data.get('timestamp')),
+            'timestamp': last_scrape or datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             'subjects': enhanced_subjects,
             'stats': {
                 'total': total_subjects,
@@ -354,24 +357,24 @@ def get_latest_data():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+
 @app.route('/api/calculate', methods=['POST'])
+@login_required
 def calculate_bunks():
     """Calculate bunk strategy"""
     try:
+        user_id = session['user_id']
         future_classes = int(request.json.get('future_classes', 20))
         
-        # Find most recent attendance file
-        files = glob.glob('attendance_*.json')
-        if not files:
+        # Get attendance from database
+        attendance_data = db.get_attendance(user_id)
+        if not attendance_data:
             return jsonify({'error': 'No data found'}), 404
         
-        latest_file = max(files, key=os.path.getctime)
-        
         calculator = AttendanceCalculator(target_percentage=75.0, safety_buffer=1.0)
-        calculator.load_data(latest_file)
         
         results = []
-        for subject in calculator.attendance_data:
+        for subject in attendance_data:
             name = subject.get('subject', 'Unknown')
             present = subject.get('present', 0)
             total = subject.get('total', 0)
@@ -389,9 +392,11 @@ def calculate_bunks():
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/scrape', methods=['POST'])
+@login_required
 def start_scrape():
     """Start scraping process"""
     try:
+        user_id = session['user_id']
         username = request.json.get('username')
         password = request.json.get('password')
         
@@ -399,7 +404,7 @@ def start_scrape():
             return jsonify({'error': 'Username and password required'}), 400
         
         # Start scraper in background thread
-        thread = threading.Thread(target=run_scraper_background, args=(username, password))
+        thread = threading.Thread(target=run_scraper_background, args=(user_id, username, password))
         thread.daemon = True
         thread.start()
         
@@ -407,16 +412,21 @@ def start_scrape():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+
 @app.route('/api/scrape-status')
-def scrape_status():
+@login_required
+def scrape_status_route():
     """Get current scraping status"""
-    return jsonify(scraper_status)
+    user_id = session['user_id']
+    return jsonify(get_scraper_status(user_id))
 
 
 @app.route('/api/update-attendance', methods=['POST'])
+@login_required
 def update_attendance():
     """Manually update attendance data for a subject"""
     try:
+        user_id = session['user_id']
         data = request.json
         subject_name = data.get('subject')
         new_present = data.get('present')
@@ -434,37 +444,8 @@ def update_attendance():
         if new_present < 0 or new_present > new_total:
             return jsonify({'error': 'Present must be between 0 and total'}), 400
         
-        # Find the most recent attendance file
-        files = glob.glob('attendance_*.json')
-        if not files:
-            return jsonify({'error': 'No attendance data found'}), 404
-        
-        latest_file = max(files, key=os.path.getctime)
-        
-        # Load and update the data
-        with open(latest_file, 'r') as f:
-            attendance_data = json.load(f)
-        
-        # Find and update the subject
-        found = False
-        for subject in attendance_data['data']:
-            if subject['subject'] == subject_name:
-                subject['present'] = new_present
-                subject['total'] = new_total
-                subject['percentage'] = round((new_present / new_total) * 100, 2)
-                found = True
-                break
-        
-        if not found:
-            return jsonify({'error': f'Subject "{subject_name}" not found'}), 404
-        
-        # Update timestamp
-        attendance_data['date'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        attendance_data['last_modified'] = 'manual'
-        
-        # Save the updated data
-        with open(latest_file, 'w') as f:
-            json.dump(attendance_data, f, indent=2)
+        # Update in database
+        db.update_subject(user_id, subject_name, new_present, new_total)
         
         return jsonify({'success': True, 'message': f'Updated {subject_name}'})
     except Exception as e:
@@ -472,9 +453,11 @@ def update_attendance():
 
 
 @app.route('/api/add-subject', methods=['POST'])
-def add_subject():
+@login_required
+def add_subject_route():
     """Add a new subject to attendance data"""
     try:
+        user_id = session['user_id']
         data = request.json
         subject_name = data.get('subject')
         present = int(data.get('present', 0))
@@ -483,81 +466,40 @@ def add_subject():
         if not subject_name or total <= 0:
             return jsonify({'error': 'Valid subject name and total required'}), 400
         
-        files = glob.glob('attendance_*.json')
-        if not files:
-            # Create new file if none exists
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            filename = f"attendance_{timestamp}.json"
-            attendance_data = {
-                'timestamp': timestamp,
-                'date': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                'source': 'Manual Entry',
-                'data': []
-            }
+        result = db.add_subject(user_id, subject_name, present, total)
+        
+        if result['success']:
+            return jsonify({'success': True, 'message': f'Added {subject_name}'})
         else:
-            latest_file = max(files, key=os.path.getctime)
-            with open(latest_file, 'r') as f:
-                attendance_data = json.load(f)
-            filename = latest_file
-        
-        # Check if subject already exists
-        for subject in attendance_data['data']:
-            if subject['subject'].lower() == subject_name.lower():
-                return jsonify({'error': 'Subject already exists'}), 400
-        
-        # Add the new subject
-        percentage = round((present / total) * 100, 2) if total > 0 else 0
-        attendance_data['data'].append({
-            'subject': subject_name,
-            'present': present,
-            'total': total,
-            'percentage': percentage
-        })
-        
-        with open(filename, 'w') as f:
-            json.dump(attendance_data, f, indent=2)
-        
-        return jsonify({'success': True, 'message': f'Added {subject_name}'})
+            return jsonify({'error': result['error']}), 400
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
 
 @app.route('/api/delete-subject', methods=['POST'])
-def delete_subject():
+@login_required
+def delete_subject_route():
     """Delete a subject from attendance data"""
     try:
+        user_id = session['user_id']
         subject_name = request.json.get('subject')
         
         if not subject_name:
             return jsonify({'error': 'Subject name required'}), 400
         
-        files = glob.glob('attendance_*.json')
-        if not files:
-            return jsonify({'error': 'No attendance data found'}), 404
+        deleted = db.delete_subject(user_id, subject_name)
         
-        latest_file = max(files, key=os.path.getctime)
-        
-        with open(latest_file, 'r') as f:
-            attendance_data = json.load(f)
-        
-        # Find and remove the subject
-        original_length = len(attendance_data['data'])
-        attendance_data['data'] = [s for s in attendance_data['data'] if s['subject'] != subject_name]
-        
-        if len(attendance_data['data']) == original_length:
+        if deleted:
+            return jsonify({'success': True, 'message': f'Deleted {subject_name}'})
+        else:
             return jsonify({'error': f'Subject "{subject_name}" not found'}), 404
-        
-        with open(latest_file, 'w') as f:
-            json.dump(attendance_data, f, indent=2)
-        
-        return jsonify({'success': True, 'message': f'Deleted {subject_name}'})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
 
 if __name__ == '__main__':
     print("="*70)
-    print("ATTENDANCE TRACKER WEB DASHBOARD")
+    print("HELP-me-BUNK WEB DASHBOARD")
     print("="*70)
     print("\nStarting server...")
     print("Open your browser and go to: http://localhost:5000")

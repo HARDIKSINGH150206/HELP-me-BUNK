@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Attendance Tracker - Setup</title>
+    <title>HELP-me-BUNK - Login</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -57,9 +57,13 @@
 
         .setup-container {
             width: 100%;
-            max-width: 900px;
+            max-width: 480px;
             position: relative;
             z-index: 1;
+        }
+
+        .setup-container.wide {
+            max-width: 900px;
         }
 
         .setup-header {
@@ -96,12 +100,16 @@
             font-size: 14px;
         }
 
-        /* Steps indicator */
+        /* Steps indicator - hidden on auth pages */
         .steps {
-            display: flex;
+            display: none;
             justify-content: center;
             gap: 40px;
             margin-bottom: 40px;
+        }
+
+        .steps.visible {
+            display: flex;
         }
 
         .step {
@@ -234,6 +242,10 @@
             border-top: 1px solid var(--border);
         }
 
+        .form-actions.center {
+            justify-content: center;
+        }
+
         .btn {
             display: inline-flex;
             align-items: center;
@@ -273,6 +285,11 @@
         .btn-secondary:hover {
             background: var(--bg-layer-3);
             color: var(--text-primary);
+        }
+
+        .btn-full {
+            width: 100%;
+            justify-content: center;
         }
 
         /* Status message */
@@ -320,64 +337,23 @@
             to { transform: rotate(360deg); }
         }
 
-        /* Quick add subjects */
-        .quick-subjects {
-            margin-top: 20px;
-            padding: 16px;
-            background: var(--bg-layer-1);
-            border-radius: var(--radius-sm);
-        }
-
-        .quick-subjects-title {
-            font-size: 13px;
-            color: var(--text-muted);
-            margin-bottom: 12px;
-        }
-
-        .quick-subjects-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-
-        .quick-subject {
-            padding: 8px 14px;
-            background: var(--bg-layer-2);
-            border: 1px solid var(--border);
-            border-radius: 20px;
-            font-size: 12px;
-            color: var(--text-secondary);
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .quick-subject:hover {
-            border-color: var(--accent);
-            color: var(--accent);
-        }
-
-        .quick-subject.selected {
-            background: var(--accent);
-            border-color: var(--accent);
-            color: var(--bg-base);
-        }
-
-        /* Classes per day input */
-        .classes-input-group {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .classes-input {
-            width: 60px;
+        /* Auth toggle link */
+        .auth-toggle {
             text-align: center;
-            padding: 10px;
+            margin-top: 20px;
+            color: var(--text-muted);
+            font-size: 14px;
         }
 
-        .classes-label {
-            font-size: 12px;
-            color: var(--text-muted);
+        .auth-toggle a {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .auth-toggle a:hover {
+            text-decoration: underline;
         }
 
         /* Responsive */
@@ -401,17 +377,17 @@
     </style>
 </head>
 <body>
-    <div class="setup-container">
+    <div class="setup-container" id="container">
         <div class="setup-header">
             <div class="logo">
                 <i class="fas fa-chart-pie"></i>
             </div>
-            <h1>Attendance<span>Tracker</span></h1>
-            <p>Configure your semester details to get started</p>
+            <h1>HELP-me-<span>BUNK</span></h1>
+            <p id="header-subtitle">Track your attendance, plan your bunks</p>
         </div>
 
-        <!-- Steps Indicator -->
-        <div class="steps">
+        <!-- Steps Indicator (hidden on auth pages) -->
+        <div class="steps" id="steps-indicator">
             <div class="step active" id="step1-indicator">
                 <div class="step-number">1</div>
                 <span>ERP Login</span>
@@ -422,8 +398,77 @@
             </div>
         </div>
 
+        <!-- Login Form -->
+        <div class="form-card active" id="auth-login">
+            <div class="form-title">
+                <i class="fas fa-sign-in-alt"></i>
+                Welcome Back
+            </div>
+            <div class="form-subtitle">Sign in to your account to continue</div>
+
+            <div id="login-status" class="status-message"></div>
+
+            <div class="form-group">
+                <label for="login-username">Username</label>
+                <input type="text" id="login-username" placeholder="Enter your username">
+            </div>
+
+            <div class="form-group">
+                <label for="login-password">Password</label>
+                <input type="password" id="login-password" placeholder="Enter your password">
+            </div>
+
+            <div class="form-actions center">
+                <button class="btn btn-primary btn-full" onclick="doLogin()" id="loginBtn">
+                    <i class="fas fa-sign-in-alt"></i>
+                    Sign In
+                </button>
+            </div>
+
+            <div class="auth-toggle">
+                Don't have an account? <a onclick="showAuth('register')">Create one</a>
+            </div>
+        </div>
+
+        <!-- Register Form -->
+        <div class="form-card" id="auth-register">
+            <div class="form-title">
+                <i class="fas fa-user-plus"></i>
+                Create Account
+            </div>
+            <div class="form-subtitle">Register to start tracking your attendance</div>
+
+            <div id="register-status" class="status-message"></div>
+
+            <div class="form-group">
+                <label for="register-username">Choose a Username</label>
+                <input type="text" id="register-username" placeholder="Pick a unique username">
+            </div>
+
+            <div class="form-group">
+                <label for="register-password">Password</label>
+                <input type="password" id="register-password" placeholder="Create a password">
+            </div>
+
+            <div class="form-group">
+                <label for="register-password-confirm">Confirm Password</label>
+                <input type="password" id="register-password-confirm" placeholder="Confirm your password">
+            </div>
+
+            <div class="form-actions center">
+                <button class="btn btn-primary btn-full" onclick="doRegister()" id="registerBtn">
+                    <i class="fas fa-user-plus"></i>
+                    Create Account
+                </button>
+            </div>
+
+            <div class="auth-toggle">
+                Already have an account? <a onclick="showAuth('login')">Sign in</a>
+            </div>
+        </div>
+
         <!-- Step 1: ERP Login -->
-        <div class="form-card active" id="step1">
+        <div class="form-card" id="step1">
             <div class="form-title">
                 <i class="fas fa-user-lock"></i>
                 ERP Credentials
@@ -433,13 +478,13 @@
             <div id="step1-status" class="status-message"></div>
 
             <div class="form-group">
-                <label for="username">ERP Username / Student ID</label>
-                <input type="text" id="username" placeholder="Enter your student ID">
+                <label for="erp-username">ERP Username / Student ID</label>
+                <input type="text" id="erp-username" placeholder="Enter your student ID">
             </div>
 
             <div class="form-group">
-                <label for="password">ERP Password</label>
-                <input type="password" id="password" placeholder="Enter your password">
+                <label for="erp-password">ERP Password</label>
+                <input type="password" id="erp-password" placeholder="Enter your password">
             </div>
 
             <div class="form-actions">
@@ -511,6 +556,144 @@
     </div>
 
     <script>
+        // Current auth mode
+        let isSetupMode = false;
+
+        function showAuth(mode) {
+            document.getElementById('auth-login').classList.remove('active');
+            document.getElementById('auth-register').classList.remove('active');
+            document.getElementById(`auth-${mode}`).classList.add('active');
+            document.getElementById('steps-indicator').classList.remove('visible');
+            document.getElementById('container').classList.remove('wide');
+            document.getElementById('header-subtitle').textContent = 'Track your attendance, plan your bunks';
+        }
+
+        function startSetupWizard() {
+            isSetupMode = true;
+            document.getElementById('auth-login').classList.remove('active');
+            document.getElementById('auth-register').classList.remove('active');
+            document.getElementById('step1').classList.add('active');
+            document.getElementById('steps-indicator').classList.add('visible');
+            document.getElementById('container').classList.add('wide');
+            document.getElementById('header-subtitle').textContent = 'Configure your semester details to get started';
+            
+            // Update step indicators
+            document.getElementById('step1-indicator').classList.add('active');
+        }
+
+        function showStatus(elementId, type, message) {
+            const statusEl = document.getElementById(elementId);
+            statusEl.className = `status-message ${type}`;
+            statusEl.innerHTML = type === 'loading' 
+                ? `<div class="mini-spinner"></div>${message}`
+                : message;
+        }
+
+        async function doLogin() {
+            const username = document.getElementById('login-username').value.trim();
+            const password = document.getElementById('login-password').value;
+            
+            if (!username || !password) {
+                showStatus('login-status', 'error', 'Please enter both username and password');
+                return;
+            }
+            
+            const btn = document.getElementById('loginBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<div class="mini-spinner"></div> Signing in...';
+            
+            try {
+                showStatus('login-status', 'loading', 'Signing in...');
+                
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    if (data.has_setup) {
+                        showStatus('login-status', 'success', 'Welcome back! Redirecting...');
+                        setTimeout(() => {
+                            window.location.href = '/dashboard';
+                        }, 1000);
+                    } else {
+                        showStatus('login-status', 'success', 'Logged in! Setting up your account...');
+                        setTimeout(() => {
+                            startSetupWizard();
+                        }, 1000);
+                    }
+                } else {
+                    showStatus('login-status', 'error', data.error || 'Login failed');
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Sign In';
+                }
+            } catch (error) {
+                showStatus('login-status', 'error', 'Connection error: ' + error.message);
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Sign In';
+            }
+        }
+
+        async function doRegister() {
+            const username = document.getElementById('register-username').value.trim();
+            const password = document.getElementById('register-password').value;
+            const confirmPassword = document.getElementById('register-password-confirm').value;
+            
+            if (!username || !password) {
+                showStatus('register-status', 'error', 'Please fill in all fields');
+                return;
+            }
+            
+            if (password !== confirmPassword) {
+                showStatus('register-status', 'error', 'Passwords do not match');
+                return;
+            }
+            
+            if (username.length < 3) {
+                showStatus('register-status', 'error', 'Username must be at least 3 characters');
+                return;
+            }
+            
+            if (password.length < 4) {
+                showStatus('register-status', 'error', 'Password must be at least 4 characters');
+                return;
+            }
+            
+            const btn = document.getElementById('registerBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<div class="mini-spinner"></div> Creating account...';
+            
+            try {
+                showStatus('register-status', 'loading', 'Creating your account...');
+                
+                const response = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showStatus('register-status', 'success', 'Account created! Setting up...');
+                    setTimeout(() => {
+                        startSetupWizard();
+                    }, 1000);
+                } else {
+                    showStatus('register-status', 'error', data.error || 'Registration failed');
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-user-plus"></i> Create Account';
+                }
+            } catch (error) {
+                showStatus('register-status', 'error', 'Connection error: ' + error.message);
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-user-plus"></i> Create Account';
+            }
+        }
+
         function goToStep(step) {
             // Hide all steps
             document.querySelectorAll('.form-card').forEach(card => card.classList.remove('active'));
@@ -529,20 +712,12 @@
             }
         }
 
-        function showStatus(stepId, type, message) {
-            const statusEl = document.getElementById(`${stepId}-status`);
-            statusEl.className = `status-message ${type}`;
-            statusEl.innerHTML = type === 'loading' 
-                ? `<div class="mini-spinner"></div>${message}`
-                : message;
-        }
-
         function validateStep1() {
-            const username = document.getElementById('username').value.trim();
-            const password = document.getElementById('password').value;
+            const username = document.getElementById('erp-username').value.trim();
+            const password = document.getElementById('erp-password').value;
             
             if (!username || !password) {
-                showStatus('step1', 'error', 'Please enter both username and password');
+                showStatus('step1-status', 'error', 'Please enter both username and password');
                 return;
             }
             
@@ -558,13 +733,13 @@
             const endDate = document.getElementById('semesterEnd').value;
             
             if (!startDate || !endDate) {
-                showStatus('step2', 'error', 'Please select both start and end dates');
-                return;
+                showStatus('step2-status', 'error', 'Please select both start and end dates');
+                return false;
             }
             
             if (new Date(startDate) >= new Date(endDate)) {
-                showStatus('step2', 'error', 'End date must be after start date');
-                return;
+                showStatus('step2-status', 'error', 'End date must be after start date');
+                return false;
             }
             
             return true;
@@ -582,7 +757,7 @@
             
             const config = {
                 username: sessionStorage.getItem('erp_username'),
-                password: document.getElementById('password').value,
+                password: sessionStorage.getItem('erp_password'),
                 semester_start: document.getElementById('semesterStart').value,
                 semester_end: document.getElementById('semesterEnd').value,
                 current_semester: document.getElementById('currentSemester').value,
@@ -590,7 +765,7 @@
             };
             
             try {
-                showStatus('step2', 'loading', 'Saving configuration and fetching attendance...');
+                showStatus('step2-status', 'loading', 'Saving configuration and fetching attendance...');
                 
                 const response = await fetch('/api/setup', {
                     method: 'POST',
@@ -601,21 +776,34 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    showStatus('step2', 'success', 'Setup complete! Redirecting to dashboard...');
+                    showStatus('step2-status', 'success', 'Setup complete! Redirecting to dashboard...');
+                    sessionStorage.removeItem('erp_username');
+                    sessionStorage.removeItem('erp_password');
                     setTimeout(() => {
                         window.location.href = '/dashboard';
                     }, 1500);
                 } else {
-                    showStatus('step2', 'error', data.error || 'Setup failed. Please try again.');
+                    showStatus('step2-status', 'error', data.error || 'Setup failed. Please try again.');
                     submitBtn.disabled = false;
                     submitBtn.innerHTML = '<i class="fas fa-rocket"></i> Launch Dashboard';
                 }
             } catch (error) {
-                showStatus('step2', 'error', 'Connection error: ' + error.message);
+                showStatus('step2-status', 'error', 'Connection error: ' + error.message);
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = '<i class="fas fa-rocket"></i> Launch Dashboard';
             }
         }
+
+        // Handle Enter key for login/register forms
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                if (document.getElementById('auth-login').classList.contains('active')) {
+                    doLogin();
+                } else if (document.getElementById('auth-register').classList.contains('active')) {
+                    doRegister();
+                }
+            }
+        });
 
         // Initialize on load
         window.onload = () => {
@@ -629,4 +817,3 @@
         };
     </script>
 </body>
-</html>

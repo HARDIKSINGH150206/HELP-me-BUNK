@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Attendance Tracker</title>
+    <title>HELP-me-BUNK</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -958,16 +958,24 @@
             <div class="nav-logo">
                 <i class="fas fa-chart-pie"></i>
             </div>
-            <div class="nav-title">Attendance<span>Tracker</span></div>
+            <div class="nav-title">HELP-me-<span>BUNK</span></div>
         </div>
         <div class="nav-actions">
             <div class="nav-time">
                 <i class="fas fa-clock"></i>
                 <span id="lastUpdated">Loading...</span>
             </div>
+            <div class="nav-time" id="userDisplay" style="display: none;">
+                <i class="fas fa-user"></i>
+                <span id="usernameDisplay">User</span>
+            </div>
             <button class="btn btn-ghost" onclick="loadData()">
                 <i class="fas fa-sync-alt"></i>
                 Refresh
+            </button>
+            <button class="btn btn-ghost" onclick="logout()" title="Logout">
+                <i class="fas fa-sign-out-alt"></i>
+                Logout
             </button>
         </div>
     </nav>
@@ -1058,8 +1066,6 @@
 
     <script>
         let allSubjects = [];
-
-        window.onload = () => loadData();
 
         function getStatusClass(pct) {
             if (pct >= 76) return 'safe';
@@ -1346,6 +1352,31 @@
         document.getElementById('editModal').addEventListener('click', function(e) {
             if (e.target === this) closeEditModal();
         });
+
+        // Logout function
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                window.location.href = '/logout';
+            }
+        }
+
+        // Load config and display username
+        async function loadConfig() {
+            try {
+                const response = await fetch('/api/config');
+                const data = await response.json();
+                if (data.username) {
+                    document.getElementById('usernameDisplay').textContent = data.username;
+                    document.getElementById('userDisplay').style.display = 'flex';
+                }
+            } catch (error) {
+                console.log('Could not load config:', error);
+            }
+        }
+
+        // Initialize
+        loadConfig();
+        loadData();
     </script>
 
     <!-- Edit Modal -->
