@@ -5,3 +5,4 @@ flask
 werkzeug
 pymongo
 python-dotenv
+gunicorn
