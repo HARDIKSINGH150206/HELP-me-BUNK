@@ -1,164 +1,128 @@
 #!/usr/bin/env python3
 """
 Database module for HELP-me-BUNK
-SQLite database for multi-user support
+MongoDB database for multi-user support
 """
 
-import sqlite3
+from pymongo import MongoClient
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
-import json
+from bson.objectid import ObjectId
 import os
 
-DATABASE_PATH = 'help_me_bunk.db'
+# MongoDB Atlas connection string - MUST set as environment variable
+# Example: export MONGODB_URI="mongodb+srv://user:pass@cluster.mongodb.net/?appName=HELPmeBUNK"
+MONGODB_URI = os.environ.get('MONGODB_URI')
+DATABASE_NAME = 'help_me_bunk'
+
+if not MONGODB_URI:
+    print("⚠ MONGODB_URI environment variable not set!")
+    print("  Set it with: export MONGODB_URI='your-connection-string'")
+
+# Global client connection
+_client = None
+_db = None
 
 
 def get_db():
     """Get database connection"""
-    conn = sqlite3.connect(DATABASE_PATH)
-    conn.row_factory = sqlite3.Row
-    return conn
+    global _client, _db
+    if _db is None:
+        _client = MongoClient(MONGODB_URI)
+        _db = _client[DATABASE_NAME]
+    return _db
 
 
 def init_db():
-    """Initialize database tables"""
-    conn = get_db()
-    cursor = conn.cursor()
+    """Initialize database collections and indexes"""
+    db = get_db()
     
-    # Users table
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT UNIQUE NOT NULL,
-            password_hash TEXT NOT NULL,
-            erp_username TEXT,
-            semester_start TEXT,
-            semester_end TEXT,
-            target_percentage INTEGER DEFAULT 75,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            last_login TIMESTAMP
-        )
-    ''')
+    # Create indexes for better query performance
+    db.users.create_index('username', unique=True)
+    db.attendance.create_index([('user_id', 1), ('subject', 1)], unique=True)
+    db.scrape_history.create_index('user_id')
     
-    # Attendance data table
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS attendance (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER NOT NULL,
-            subject TEXT NOT NULL,
-            present INTEGER DEFAULT 0,
-            total INTEGER DEFAULT 0,
-            percentage REAL DEFAULT 0,
-            last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (user_id) REFERENCES users(id),
-            UNIQUE(user_id, subject)
-        )
-    ''')
-    
-    # Scrape history table
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS scrape_history (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER NOT NULL,
-            scraped_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            subject_count INTEGER,
-            FOREIGN KEY (user_id) REFERENCES users(id)
-        )
-    ''')
-    
-    conn.commit()
-    conn.close()
-    print("✓ Database initialized")
+    print("✓ MongoDB initialized")
 
 
 # ============== USER FUNCTIONS ==============
 
 def create_user(username, password, erp_username=None):
     """Create a new user"""
-    conn = get_db()
-    cursor = conn.cursor()
+    db = get_db()
     
     try:
         password_hash = generate_password_hash(password)
-        cursor.execute('''
-            INSERT INTO users (username, password_hash, erp_username)
-            VALUES (?, ?, ?)
-        ''', (username, password_hash, erp_username))
-        conn.commit()
-        user_id = cursor.lastrowid
-        conn.close()
-        return {'success': True, 'user_id': user_id}
-    except sqlite3.IntegrityError:
-        conn.close()
-        return {'success': False, 'error': 'Username already exists'}
+        result = db.users.insert_one({
+            'username': username,
+            'password_hash': password_hash,
+            'erp_username': erp_username,
+            'semester_start': None,
+            'semester_end': None,
+            'target_percentage': 75,
+            'created_at': datetime.now(),
+            'last_login': None
+        })
+        return {'success': True, 'user_id': str(result.inserted_id)}
     except Exception as e:
-        conn.close()
+        if 'duplicate key' in str(e).lower():
+            return {'success': False, 'error': 'Username already exists'}
         return {'success': False, 'error': str(e)}
 
 
 def verify_user(username, password):
     """Verify user credentials"""
-    conn = get_db()
-    cursor = conn.cursor()
+    db = get_db()
     
-    cursor.execute('SELECT * FROM users WHERE username = ?', (username,))
-    user = cursor.fetchone()
+    user = db.users.find_one({'username': username})
     
     if user and check_password_hash(user['password_hash'], password):
         # Update last login
-        cursor.execute('''
-            UPDATE users SET last_login = ? WHERE id = ?
-        ''', (datetime.now(), user['id']))
-        conn.commit()
-        conn.close()
-        return {'success': True, 'user_id': user['id'], 'username': user['username']}
+        db.users.update_one(
+            {'_id': user['_id']},
+            {'$set': {'last_login': datetime.now()}}
+        )
+        return {'success': True, 'user_id': str(user['_id']), 'username': user['username']}
     
-    conn.close()
     return {'success': False, 'error': 'Invalid username or password'}
 
 
 def get_user(user_id):
     """Get user by ID"""
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute('SELECT * FROM users WHERE id = ?', (user_id,))
-    user = cursor.fetchone()
-    conn.close()
+    db = get_db()
     
-    if user:
-        return dict(user)
+    try:
+        user = db.users.find_one({'_id': ObjectId(user_id)})
+        if user:
+            user['id'] = str(user['_id'])
+            del user['_id']
+            return user
+    except:
+        pass
     return None
 
 
 def update_user_config(user_id, erp_username=None, semester_start=None, semester_end=None, target_percentage=None):
     """Update user configuration"""
-    conn = get_db()
-    cursor = conn.cursor()
+    db = get_db()
     
-    updates = []
-    values = []
+    updates = {}
     
     if erp_username is not None:
-        updates.append('erp_username = ?')
-        values.append(erp_username)
+        updates['erp_username'] = erp_username
     if semester_start is not None:
-        updates.append('semester_start = ?')
-        values.append(semester_start)
+        updates['semester_start'] = semester_start
     if semester_end is not None:
-        updates.append('semester_end = ?')
-        values.append(semester_end)
+        updates['semester_end'] = semester_end
     if target_percentage is not None:
-        updates.append('target_percentage = ?')
-        values.append(target_percentage)
+        updates['target_percentage'] = target_percentage
     
     if updates:
-        values.append(user_id)
-        cursor.execute(f'''
-            UPDATE users SET {', '.join(updates)} WHERE id = ?
-        ''', values)
-        conn.commit()
+        db.users.update_one(
+            {'_id': ObjectId(user_id)},
+            {'$set': updates}
+        )
     
-    conn.close()
     return True
 
 
@@ -166,8 +130,7 @@ def update_user_config(user_id, erp_username=None, semester_start=None, semester
 
 def save_attendance(user_id, subjects):
     """Save or update attendance data for a user"""
-    conn = get_db()
-    cursor = conn.cursor()
+    db = get_db()
     
     for subject in subjects:
         name = subject.get('subject')
@@ -175,122 +138,111 @@ def save_attendance(user_id, subjects):
         total = subject.get('total', 0)
         percentage = round((present / total) * 100, 2) if total > 0 else 0
         
-        cursor.execute('''
-            INSERT INTO attendance (user_id, subject, present, total, percentage, last_updated)
-            VALUES (?, ?, ?, ?, ?, ?)
-            ON CONFLICT(user_id, subject) DO UPDATE SET
-                present = excluded.present,
-                total = excluded.total,
-                percentage = excluded.percentage,
-                last_updated = excluded.last_updated
-        ''', (user_id, name, present, total, percentage, datetime.now()))
+        db.attendance.update_one(
+            {'user_id': user_id, 'subject': name},
+            {'$set': {
+                'present': present,
+                'total': total,
+                'percentage': percentage,
+                'last_updated': datetime.now()
+            }},
+            upsert=True
+        )
     
     # Record scrape history
-    cursor.execute('''
-        INSERT INTO scrape_history (user_id, subject_count)
-        VALUES (?, ?)
-    ''', (user_id, len(subjects)))
+    db.scrape_history.insert_one({
+        'user_id': user_id,
+        'scraped_at': datetime.now(),
+        'subject_count': len(subjects)
+    })
     
-    conn.commit()
-    conn.close()
     return True
 
 
 def get_attendance(user_id):
     """Get all attendance data for a user"""
-    conn = get_db()
-    cursor = conn.cursor()
+    db = get_db()
     
-    cursor.execute('''
-        SELECT subject, present, total, percentage, last_updated
-        FROM attendance WHERE user_id = ?
-        ORDER BY subject
-    ''', (user_id,))
+    subjects = list(db.attendance.find(
+        {'user_id': user_id},
+        {'_id': 0, 'user_id': 0}
+    ).sort('subject', 1))
     
-    rows = cursor.fetchall()
-    conn.close()
-    
-    return [dict(row) for row in rows]
+    return subjects
 
 
 def update_subject(user_id, subject_name, present, total):
     """Update a single subject's attendance"""
-    conn = get_db()
-    cursor = conn.cursor()
+    db = get_db()
     
     percentage = round((present / total) * 100, 2) if total > 0 else 0
     
-    cursor.execute('''
-        UPDATE attendance 
-        SET present = ?, total = ?, percentage = ?, last_updated = ?
-        WHERE user_id = ? AND subject = ?
-    ''', (present, total, percentage, datetime.now(), user_id, subject_name))
+    result = db.attendance.update_one(
+        {'user_id': user_id, 'subject': subject_name},
+        {'$set': {
+            'present': present,
+            'total': total,
+            'percentage': percentage,
+            'last_updated': datetime.now()
+        }},
+        upsert=True
+    )
     
-    if cursor.rowcount == 0:
-        # Subject doesn't exist, insert it
-        cursor.execute('''
-            INSERT INTO attendance (user_id, subject, present, total, percentage)
-            VALUES (?, ?, ?, ?, ?)
-        ''', (user_id, subject_name, present, total, percentage))
-    
-    conn.commit()
-    conn.close()
     return True
 
 
 def add_subject(user_id, subject_name, present, total):
     """Add a new subject"""
-    conn = get_db()
-    cursor = conn.cursor()
+    db = get_db()
     
     percentage = round((present / total) * 100, 2) if total > 0 else 0
     
-    try:
-        cursor.execute('''
-            INSERT INTO attendance (user_id, subject, present, total, percentage)
-            VALUES (?, ?, ?, ?, ?)
-        ''', (user_id, subject_name, present, total, percentage))
-        conn.commit()
-        conn.close()
-        return {'success': True}
-    except sqlite3.IntegrityError:
-        conn.close()
+    # Check if subject already exists
+    existing = db.attendance.find_one({'user_id': user_id, 'subject': subject_name})
+    if existing:
         return {'success': False, 'error': 'Subject already exists'}
+    
+    db.attendance.insert_one({
+        'user_id': user_id,
+        'subject': subject_name,
+        'present': present,
+        'total': total,
+        'percentage': percentage,
+        'last_updated': datetime.now()
+    })
+    
+    return {'success': True}
 
 
 def delete_subject(user_id, subject_name):
     """Delete a subject"""
-    conn = get_db()
-    cursor = conn.cursor()
+    db = get_db()
     
-    cursor.execute('''
-        DELETE FROM attendance WHERE user_id = ? AND subject = ?
-    ''', (user_id, subject_name))
+    result = db.attendance.delete_one({
+        'user_id': user_id,
+        'subject': subject_name
+    })
     
-    deleted = cursor.rowcount > 0
-    conn.commit()
-    conn.close()
-    
-    return deleted
+    return result.deleted_count > 0
 
 
 def get_last_scrape(user_id):
     """Get last scrape timestamp"""
-    conn = get_db()
-    cursor = conn.cursor()
+    db = get_db()
     
-    cursor.execute('''
-        SELECT scraped_at FROM scrape_history 
-        WHERE user_id = ? 
-        ORDER BY scraped_at DESC LIMIT 1
-    ''', (user_id,))
+    record = db.scrape_history.find_one(
+        {'user_id': user_id},
+        sort=[('scraped_at', -1)]
+    )
     
-    row = cursor.fetchone()
-    conn.close()
-    
-    return row['scraped_at'] if row else None
+    if record:
+        return record['scraped_at'].strftime("%Y-%m-%d %H:%M:%S")
+    return None
 
 
 # Initialize database when module is imported
-if not os.path.exists(DATABASE_PATH):
+try:
     init_db()
+except Exception as e:
+    print(f"⚠ MongoDB connection pending - set MONGODB_URI environment variable")
+    print(f"  Error: {e}")

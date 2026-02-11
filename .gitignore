@@ -32,3 +32,5 @@ user_config.json
 # Database (contains user data)
 *.db
 help_me_bunk.db
+# Environment variables (contains secrets)
+.env

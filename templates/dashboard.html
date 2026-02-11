@@ -1213,6 +1213,13 @@
         async function loadData() {
             try {
                 const response = await fetch('/api/latest-data');
+                
+                // Check for auth errors - redirect to login
+                if (response.status === 401) {
+                    window.location.href = '/';
+                    return;
+                }
+                
                 const data = await response.json();
 
                 if (data.error) {
@@ -1220,12 +1227,22 @@
                         <div class="empty-state">
                             <div class="empty-icon"><i class="fas fa-database"></i></div>
                             <h2>No Data Available</h2>
-                            <p>Run the attendance scraper to fetch your data</p>
-                            <button class="btn btn-primary" onclick="window.location.reload()">
-                                <i class="fas fa-redo"></i> Refresh
+                            <p>${data.error}</p>
+                            <button class="btn btn-primary" onclick="showAddSubjectForm()">
+                                <i class="fas fa-plus"></i> Add Subject Manually
                             </button>
                         </div>
                     `;
+                    // Update stats to show zeros
+                    document.getElementById('totalSubjects').textContent = '0';
+                    document.getElementById('safeSubjects').textContent = '0';
+                    document.getElementById('dangerSubjects').textContent = '0';
+                    document.getElementById('safeCount').textContent = '0';
+                    document.getElementById('warningCount').textContent = '0';
+                    document.getElementById('dangerCount').textContent = '0';
+                    document.getElementById('avgValue').textContent = '0%';
+                    document.getElementById('overallDetail').textContent = '0/0 classes';
+                    document.getElementById('lastUpdated').textContent = 'No data yet';
                     return;
                 }
 
@@ -1352,6 +1369,37 @@
         document.getElementById('editModal').addEventListener('click', function(e) {
             if (e.target === this) closeEditModal();
         });
+
+        // Add subject manually
+        async function showAddSubjectForm() {
+            const subjectName = prompt('Enter subject name:');
+            if (!subjectName) return;
+            
+            const present = parseInt(prompt('Enter present classes:', '0') || '0');
+            const total = parseInt(prompt('Enter total classes:', '1') || '1');
+            
+            if (total <= 0) {
+                alert('Total classes must be greater than 0');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/add-subject', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ subject: subjectName, present, total })
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    loadData();
+                } else {
+                    alert(data.error || 'Failed to add subject');
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
 
         // Logout function
         function logout() {

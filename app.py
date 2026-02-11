@@ -2,8 +2,11 @@
 """
 HELP-me-BUNK Web Dashboard
 Flask web application for monitoring college attendance
-Multi-user support with SQLite database
+Multi-user support with MongoDB database
 """
+
+from dotenv import load_dotenv
+load_dotenv()  # Load environment variables from .env file
 
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for
 from functools import wraps
