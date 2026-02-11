@@ -33,4 +33,4 @@ user_config.json
 *.db
 help_me_bunk.db
 # Environment variables (contains secrets)
-.env
+.envcookies.txt
