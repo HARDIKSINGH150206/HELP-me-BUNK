@@ -318,6 +318,7 @@ class AcharyaERPScraper:
         """Extract attendance data from Acharya ERP cards - improved accuracy"""
         attendance_data = []
         processed = set()
+        overall_attendance = None  # Will store {present, total, percentage} from ERP
         
         try:
             print("Waiting for page to fully load...")
@@ -328,6 +329,49 @@ class AcharyaERPScraper:
             time.sleep(2)
             self.driver.execute_script("window.scrollTo(0, 0);")
             time.sleep(1)
+            
+            # First, try to extract overall attendance from ERP
+            print("Looking for overall attendance...")
+            body_text = self.driver.find_element(By.TAG_NAME, "body").text
+            
+            # Patterns to find overall attendance (adjust based on ERP format)
+            overall_patterns = [
+                re.compile(r'overall\s*(?:attendance)?[:\s]*(\d+)\s*[/of]\s*(\d+)', re.IGNORECASE),
+                re.compile(r'total\s*(?:attendance)?[:\s]*(\d+)\s*[/of]\s*(\d+)', re.IGNORECASE),
+                re.compile(r'aggregate\s*(?:attendance)?[:\s]*(\d+)\s*[/of]\s*(\d+)', re.IGNORECASE),
+                re.compile(r'overall[:\s]*(\d+(?:\.\d+)?)\s*%', re.IGNORECASE),
+                re.compile(r'total\s+attendance[:\s]*(\d+(?:\.\d+)?)\s*%', re.IGNORECASE),
+                re.compile(r'aggregate[:\s]*(\d+(?:\.\d+)?)\s*%', re.IGNORECASE),
+                re.compile(r'present\s*classes?[:\s]*(\d+).*?total\s*classes?[:\s]*(\d+)', re.IGNORECASE | re.DOTALL),
+            ]
+            
+            for pattern in overall_patterns:
+                match = pattern.search(body_text)
+                if match:
+                    groups = match.groups()
+                    if len(groups) == 2:
+                        # It's present/total format
+                        present = int(groups[0])
+                        total = int(groups[1])
+                        if total > 0:
+                            percentage = round((present / total) * 100, 2)
+                            overall_attendance = {
+                                'present': present,
+                                'total': total,
+                                'percentage': percentage
+                            }
+                            print(f"  ✓ Found overall attendance: {present}/{total} ({percentage}%)")
+                            break
+                    elif len(groups) == 1:
+                        # It's just a percentage
+                        percentage = float(groups[0])
+                        overall_attendance = {
+                            'present': None,
+                            'total': None,
+                            'percentage': percentage
+                        }
+                        print(f"  ✓ Found overall attendance percentage: {percentage}%")
+                        break
             
             # Method 1: Look for card/container elements with attendance data
             print("Method 1: Searching for attendance cards...")
@@ -539,7 +583,24 @@ class AcharyaERPScraper:
                 # Sort by subject name for consistency
                 attendance_data.sort(key=lambda x: x['subject'])
                 print(f"\n✓ Successfully extracted {len(attendance_data)} subjects")
-                return attendance_data
+                
+                # If no overall found, calculate from subjects
+                if not overall_attendance:
+                    total_present = sum(s['present'] for s in attendance_data)
+                    total_classes = sum(s['total'] for s in attendance_data)
+                    if total_classes > 0:
+                        overall_attendance = {
+                            'present': total_present,
+                            'total': total_classes,
+                            'percentage': round((total_present / total_classes) * 100, 2)
+                        }
+                        print(f"  ✓ Calculated overall: {total_present}/{total_classes} ({overall_attendance['percentage']}%)")
+                
+                # Return dict with both subjects and overall
+                return {
+                    'subjects': attendance_data,
+                    'overall': overall_attendance
+                }
             
             print("\n⚠ No attendance data found automatically.")
             print("Please ensure you are on the attendance page with subject cards visible.")

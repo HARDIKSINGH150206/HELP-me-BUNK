@@ -10,6 +10,33 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from bson.objectid import ObjectId
 import os
 import certifi
+import base64
+from cryptography.fernet import Fernet
+
+# Encryption key for ERP passwords (generate one if not set)
+ENCRYPTION_KEY = os.environ.get('ENCRYPTION_KEY')
+if not ENCRYPTION_KEY:
+    # Generate a key and warn user to set it
+    ENCRYPTION_KEY = Fernet.generate_key().decode()
+    print(f"⚠ ENCRYPTION_KEY not set. Using temporary key: {ENCRYPTION_KEY}")
+    print("  Set it with: export ENCRYPTION_KEY='your-key'")
+else:
+    ENCRYPTION_KEY = ENCRYPTION_KEY.encode() if isinstance(ENCRYPTION_KEY, str) else ENCRYPTION_KEY
+
+_fernet = Fernet(ENCRYPTION_KEY if isinstance(ENCRYPTION_KEY, bytes) else ENCRYPTION_KEY.encode())
+
+
+def encrypt_password(password):
+    """Encrypt a password for storage"""
+    return _fernet.encrypt(password.encode()).decode()
+
+
+def decrypt_password(encrypted):
+    """Decrypt a stored password"""
+    try:
+        return _fernet.decrypt(encrypted.encode()).decode()
+    except:
+        return None
 
 # MongoDB Atlas connection string - MUST set as environment variable
 # Example: export MONGODB_URI="mongodb+srv://user:pass@cluster.mongodb.net/?appName=HELPmeBUNK"
@@ -35,7 +62,8 @@ def get_db():
             _client = MongoClient(
                 MONGODB_URI, 
                 serverSelectionTimeoutMS=5000,
-                tlsCAFile=certifi.where()
+                tlsCAFile=certifi.where(),
+                tlsAllowInvalidCertificates=True
             )
             _db = _client[DATABASE_NAME]
             # Test connection
@@ -116,7 +144,7 @@ def get_user(user_id):
     return None
 
 
-def update_user_config(user_id, erp_username=None, semester_start=None, semester_end=None, target_percentage=None):
+def update_user_config(user_id, erp_username=None, erp_password=None, semester_start=None, semester_end=None, target_percentage=None):
     """Update user configuration"""
     db = get_db()
     
@@ -124,6 +152,9 @@ def update_user_config(user_id, erp_username=None, semester_start=None, semester
     
     if erp_username is not None:
         updates['erp_username'] = erp_username
+    if erp_password is not None:
+        # Encrypt ERP password before storing
+        updates['erp_password_encrypted'] = encrypt_password(erp_password)
     if semester_start is not None:
         updates['semester_start'] = semester_start
     if semester_end is not None:
@@ -140,9 +171,26 @@ def update_user_config(user_id, erp_username=None, semester_start=None, semester
     return True
 
 
+def get_erp_credentials(user_id):
+    """Get decrypted ERP credentials for a user"""
+    db = get_db()
+    user = db.users.find_one({'_id': ObjectId(user_id)})
+    
+    if user:
+        erp_username = user.get('erp_username')
+        erp_password_encrypted = user.get('erp_password_encrypted')
+        
+        if erp_username and erp_password_encrypted:
+            erp_password = decrypt_password(erp_password_encrypted)
+            if erp_password:
+                return {'username': erp_username, 'password': erp_password}
+    
+    return None
+
+
 # ============== ATTENDANCE FUNCTIONS ==============
 
-def save_attendance(user_id, subjects):
+def save_attendance(user_id, subjects, overall=None):
     """Save or update attendance data for a user"""
     db = get_db()
     
@@ -163,14 +211,92 @@ def save_attendance(user_id, subjects):
             upsert=True
         )
     
-    # Record scrape history
+    # Save overall attendance from ERP if provided
+    if overall:
+        db.users.update_one(
+            {'_id': ObjectId(user_id)},
+            {'$set': {
+                'erp_overall_present': overall.get('present'),
+                'erp_overall_total': overall.get('total'),
+                'erp_overall_percentage': overall.get('percentage'),
+                'erp_overall_updated': datetime.now()
+            }}
+        )
+    
+    # Record scrape history with full attendance snapshot for trends
+    total_present = sum(s.get('present', 0) for s in subjects)
+    total_classes = sum(s.get('total', 0) for s in subjects)
+    overall_pct = round((total_present / total_classes) * 100, 2) if total_classes > 0 else 0
+    
     db.scrape_history.insert_one({
         'user_id': user_id,
         'scraped_at': datetime.now(),
-        'subject_count': len(subjects)
+        'subject_count': len(subjects),
+        'total_present': total_present,
+        'total_classes': total_classes,
+        'overall_percentage': overall.get('percentage') if overall else overall_pct,
+        'subjects_snapshot': subjects  # Store full snapshot for detailed trends
     })
     
     return True
+
+
+def get_attendance_history(user_id, days=30):
+    """Get attendance history for trends (last N days)"""
+    db = get_db()
+    
+    from datetime import timedelta
+    cutoff_date = datetime.now() - timedelta(days=days)
+    
+    history = list(db.scrape_history.find(
+        {'user_id': user_id, 'scraped_at': {'$gte': cutoff_date}},
+        {'_id': 0, 'user_id': 0}
+    ).sort('scraped_at', 1))
+    
+    return history
+
+
+def get_subject_history(user_id, subject_name, days=30):
+    """Get history for a specific subject"""
+    db = get_db()
+    
+    from datetime import timedelta
+    cutoff_date = datetime.now() - timedelta(days=days)
+    
+    history = list(db.scrape_history.find(
+        {'user_id': user_id, 'scraped_at': {'$gte': cutoff_date}},
+        {'_id': 0, 'scraped_at': 1, 'subjects_snapshot': 1}
+    ).sort('scraped_at', 1))
+    
+    subject_history = []
+    for record in history:
+        snapshot = record.get('subjects_snapshot', [])
+        for s in snapshot:
+            if s.get('subject') == subject_name:
+                subject_history.append({
+                    'date': record['scraped_at'],
+                    'present': s.get('present', 0),
+                    'total': s.get('total', 0),
+                    'percentage': s.get('percentage', 0)
+                })
+                break
+    
+    return subject_history
+
+
+def get_erp_overall(user_id):
+    """Get overall attendance from ERP for a user"""
+    db = get_db()
+    user = db.users.find_one({'_id': ObjectId(user_id)})
+    
+    if user and user.get('erp_overall_percentage') is not None:
+        return {
+            'present': user.get('erp_overall_present'),
+            'total': user.get('erp_overall_total'),
+            'percentage': user.get('erp_overall_percentage'),
+            'updated': user.get('erp_overall_updated')
+        }
+    return None
 
 
 def get_attendance(user_id):
