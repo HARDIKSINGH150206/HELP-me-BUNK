@@ -762,6 +762,7 @@ class AcharyaERPScraper:
         """
         filename = None
         verified_data = None
+        timetable_data = None
         
         try:
             self.setup_driver()
@@ -810,6 +811,20 @@ class AcharyaERPScraper:
                 else:
                     print("\n✗ Could not extract attendance data")
                     return None
+            
+            # Now try to extract and save timetable
+            print("\n" + "="*70)
+            print("EXTRACTING TIMETABLE DATA...")
+            print("="*70)
+            
+            if self.navigate_to_calendar():
+                timetable_data = self.extract_timetable_data()
+                if timetable_data and len(timetable_data) > 0:
+                    print(f"\n✓ Extracted {len(timetable_data)} timetable entries")
+                else:
+                    print("\n⚠ Could not extract timetable from calendar page")
+            else:
+                print("\n⚠ Could not navigate to calendar page")
                 
         except Exception as e:
             print(f"\n✗ Error occurred: {e}")
@@ -826,7 +841,12 @@ class AcharyaERPScraper:
         if filename and verified_data and not auto_mode:
             self.run_calculator()
         
-        return filename
+        # Return both attendance and timetable data
+        return {
+            'attendance_file': filename,
+            'attendance_data': verified_data,
+            'timetable_data': timetable_data
+        }
 
 
 if __name__ == "__main__":

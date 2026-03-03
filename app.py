@@ -102,11 +102,11 @@ def run_scraper_background(user_id, username, password):
             status['running'] = False
             return
         
-        status['progress'] = 'Extracting data...'
+        status['progress'] = 'Extracting attendance data...'
         data = scraper.extract_attendance_data()
         
         if data:
-            status['progress'] = 'Saving data...'
+            status['progress'] = 'Saving attendance data...'
             # Handle new format: data is now {'subjects': [...], 'overall': {...}}
             if isinstance(data, dict) and 'subjects' in data:
                 subjects_data = data['subjects']
@@ -125,18 +125,49 @@ def run_scraper_background(user_id, username, password):
                         'total': item.get('total', 0)
                     })
                 db.save_attendance(user_id, subjects, overall=overall_data)
-                status['progress'] = 'Complete!'
-                status['complete'] = True
+                status['progress'] = 'Attendance saved!'
             else:
                 status['error'] = 'No subject data found'
         else:
-            status['error'] = 'No data found'
+            status['error'] = 'No attendance data found'
+        
+        # Now extract and save timetable
+        status['progress'] = 'Extracting timetable...'
+        if scraper.navigate_to_calendar():
+            timetable_data = scraper.extract_timetable_data()
+            if timetable_data and len(timetable_data) > 0:
+                status['progress'] = f'Saving {len(timetable_data)} timetable entries...'
+                try:
+                    # Save timetable entries to database
+                    for entry in timetable_data:
+                        if entry.get('subject') and entry.get('day') is not None:
+                            start_time = entry.get('start_time') or '09:00'
+                            end_time = entry.get('end_time') or '10:00'
+                            db.add_timetable_entry(
+                                user_id,
+                                entry['subject'],
+                                entry['day'],
+                                start_time,
+                                end_time
+                            )
+                    status['progress'] = 'Timetable saved!'
+                except Exception as e:
+                    print(f"⚠ Warning: Could not save some timetable entries: {e}")
+            else:
+                print("⚠ No timetable data found")
+        else:
+            print("⚠ Could not navigate to calendar page")
+        
+        status['complete'] = True
         
         if scraper.driver:
             scraper.driver.quit()
             
     except Exception as e:
         status['error'] = str(e)
+        print(f"✗ Scraper error: {e}")
+        import traceback
+        traceback.print_exc()
     finally:
         status['running'] = False
 
