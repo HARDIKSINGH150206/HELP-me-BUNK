@@ -250,7 +250,7 @@ def get_user(user_id):
     return None
 
 
-def update_user_config(user_id, erp_username=None, erp_password=None, semester_start=None, semester_end=None, target_percentage=None):
+def update_user_config(user_id, erp_username=None, erp_password=None, semester_start=None, semester_end=None, target_percentage=None, auto_sync_enabled=None, auto_sync_interval=None):
     """Update user configuration"""
     global _using_fallback
     
@@ -267,6 +267,10 @@ def update_user_config(user_id, erp_username=None, erp_password=None, semester_s
                 data['users'][user_id]['semester_end'] = semester_end
             if target_percentage is not None:
                 data['users'][user_id]['target_percentage'] = target_percentage
+            if auto_sync_enabled is not None:
+                data['users'][user_id]['auto_sync_enabled'] = auto_sync_enabled
+            if auto_sync_interval is not None:
+                data['users'][user_id]['auto_sync_interval'] = auto_sync_interval
             _save_json_db()
         return True
     
@@ -286,6 +290,10 @@ def update_user_config(user_id, erp_username=None, erp_password=None, semester_s
         updates['semester_end'] = semester_end
     if target_percentage is not None:
         updates['target_percentage'] = target_percentage
+    if auto_sync_enabled is not None:
+        updates['auto_sync_enabled'] = auto_sync_enabled
+    if auto_sync_interval is not None:
+        updates['auto_sync_interval'] = auto_sync_interval
     
     if updates:
         db.users.update_one(
@@ -326,6 +334,37 @@ def get_erp_credentials(user_id):
                 return {'username': erp_username, 'password': erp_password}
     
     return None
+
+
+def get_all_users_with_auto_sync():
+    """Get all users who have auto-sync enabled (for restoring schedules on startup)"""
+    global _using_fallback
+    
+    if _using_fallback:
+        data = _load_json_db()
+        users = []
+        for user_id, user in data['users'].items():
+            if user.get('auto_sync_enabled'):
+                users.append({
+                    'id': user_id,
+                    'auto_sync_interval': user.get('auto_sync_interval', 12)
+                })
+        return users
+    
+    db = get_db()
+    
+    cursor = db.users.find(
+        {'auto_sync_enabled': True},
+        {'_id': 1, 'auto_sync_interval': 1}
+    )
+    
+    users = []
+    for user in cursor:
+        users.append({
+            'id': str(user['_id']),
+            'auto_sync_interval': user.get('auto_sync_interval', 12)
+        })
+    return users
 
 
 # ============== ATTENDANCE FUNCTIONS ==============

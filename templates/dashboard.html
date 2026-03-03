@@ -18,48 +18,90 @@
 
         :root {
             --bg-base: #000000;
-            --bg-layer-1: #080808;
-            --bg-layer-2: #0f0f0f;
-            --bg-layer-3: #161616;
-            --bg-glass: rgba(8, 8, 8, 0.9);
-            --text-primary: #e8e8e8;
-            --text-secondary: rgba(232, 232, 232, 0.6);
-            --text-muted: rgba(232, 232, 232, 0.35);
-            --accent: #6366f1;
-            --accent-light: #818cf8;
-            --accent-glow: rgba(99, 102, 241, 0.15);
-            --accent-subtle: rgba(99, 102, 241, 0.06);
-            --success: #34d399;
-            --success-bg: rgba(52, 211, 153, 0.08);
-            --warning: #fbbf24;
-            --warning-bg: rgba(251, 191, 36, 0.08);
-            --danger: #f87171;
-            --danger-bg: rgba(248, 113, 113, 0.08);
-            --border: rgba(255, 255, 255, 0.04);
-            --border-hover: rgba(99, 102, 241, 0.25);
-            --shadow: 0 2px 16px rgba(0, 0, 0, 0.4);
-            --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
-            --radius: 10px;
-            --radius-sm: 6px;
+            --bg-layer-1: rgba(15, 15, 15, 0.4);
+            --bg-layer-2: rgba(255, 255, 255, 0.03);
+            --bg-layer-3: rgba(255, 255, 255, 0.06);
+            --bg-glass: rgba(15, 15, 15, 0.4);
+            --text-primary: #d1d5db;
+            --text-secondary: rgba(209, 213, 219, 0.7);
+            --text-muted: rgba(209, 213, 219, 0.4);
+            --accent: #9ca3af;
+            --accent-light: #d1d5db;
+            --accent-glow: rgba(156, 163, 175, 0.1);
+            --accent-subtle: rgba(156, 163, 175, 0.04);
+            --glow-1: rgba(156, 163, 175, 0.05);
+            --glow-2: rgba(75, 85, 99, 0.05);
+            --success: #10b981;
+            --success-bg: rgba(16, 185, 129, 0.1);
+            --warning: #f59e0b;
+            --warning-bg: rgba(245, 158, 11, 0.1);
+            --danger: #ef4444;
+            --danger-bg: rgba(239, 68, 68, 0.1);
+            --border: rgba(255, 255, 255, 0.05);
+            --border-hover: rgba(255, 255, 255, 0.15);
+            --shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+            --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.02);
+            --radius: 16px;
+            --radius-sm: 8px;
         }
 
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: var(--bg-base);
+            background-color: var(--bg-base);
+            background-image: radial-gradient(rgba(255, 255, 255, 0.15) 1.5px, transparent 1px);
+            background-size: 24px 24px;
             min-height: 100vh;
             color: var(--text-primary);
             line-height: 1.6;
             overflow-x: hidden;
+            position: relative;
         }
 
-        /* Subtle gradient background */
-        body::before {
+        /* Animated gradient background */
+        body::before,
+        body::after {
             content: '';
             position: fixed;
-            inset: 0;
-            background: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(99, 102, 241, 0.04), transparent 50%);
-            pointer-events: none;
+            border-radius: 50%;
+            filter: blur(120px);
             z-index: 0;
+            pointer-events: none;
+            animation: float 20s infinite ease-in-out alternate;
+        }
+
+        body::before {
+            width: 50vw;
+            height: 50vw;
+            max-width: 600px;
+            max-height: 600px;
+            background: var(--glow-1);
+            top: -10%;
+            left: -10%;
+        }
+
+        body::after {
+            width: 40vw;
+            height: 40vw;
+            max-width: 500px;
+            max-height: 500px;
+            background: var(--glow-2);
+            bottom: -10%;
+            right: -10%;
+            animation-delay: -10s;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translate(0, 0) scale(1);
+            }
+
+            50% {
+                transform: translate(10%, 15%) scale(1.1);
+            }
+
+            100% {
+                transform: translate(-5%, 8%) scale(0.9);
+            }
         }
 
         /* Scrollbar */
@@ -105,13 +147,14 @@
         .nav-logo {
             width: 36px;
             height: 36px;
-            background: var(--accent);
+            background: #111;
+            border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 16px;
-            color: var(--bg-base);
+            color: var(--text-primary);
         }
 
         .nav-title {
@@ -149,24 +192,49 @@
         .btn {
             display: inline-flex;
             align-items: center;
-            gap: 6px;
-            padding: 8px 16px;
+            gap: 8px;
+            padding: 10px 20px;
             border-radius: var(--radius-sm);
             font-size: 13px;
-            font-weight: 500;
+            font-weight: 600;
             cursor: pointer;
-            transition: all 0.15s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             border: none;
-            outline: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(rgba(255, 255, 255, 0.1), transparent);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .btn:hover::after {
+            opacity: 1;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
         }
 
         .btn-primary {
-            background: var(--accent);
-            color: var(--bg-base);
+            background: linear-gradient(135deg, #1f2937, #111827);
+            color: var(--text-primary);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
         }
 
         .btn-primary:hover {
-            background: var(--accent-light);
+            box-shadow: 0 8px 25px rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
         }
 
         .btn-ghost {
@@ -180,7 +248,7 @@
             border-color: var(--border-hover);
             color: var(--text-primary);
         }
-        
+
         .btn-secondary {
             background: var(--bg-layer-2);
             color: var(--text-secondary);
@@ -191,7 +259,7 @@
             background: var(--bg-layer-3);
             color: var(--text-primary);
         }
-        
+
         .btn-danger {
             background: transparent;
             color: var(--danger);
@@ -221,14 +289,17 @@
 
         .hero-main {
             background: var(--bg-layer-1);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
             border: 1px solid var(--border);
             border-radius: var(--radius);
-            padding: 28px;
+            padding: 32px;
             display: flex;
             align-items: center;
-            gap: 36px;
+            gap: 40px;
             position: relative;
             overflow: hidden;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
         }
 
         .hero-main::before {
@@ -349,9 +420,12 @@
         /* Quick Actions Card */
         .quick-card {
             background: var(--bg-layer-1);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
             border: 1px solid var(--border);
             border-radius: var(--radius);
-            padding: 20px;
+            padding: 24px;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
         }
 
         .quick-card-title {
@@ -486,12 +560,15 @@
 
         .subject-card {
             background: var(--bg-layer-1);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
             border: 1px solid var(--border);
             border-radius: var(--radius);
-            padding: 20px;
-            transition: all 0.15s ease;
+            padding: 24px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
             overflow: hidden;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
         }
 
         .subject-card::before {
@@ -517,7 +594,9 @@
 
         .subject-card:hover {
             border-color: var(--border-hover);
-            background: var(--bg-layer-2);
+            background: var(--bg-glass);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
         }
 
         .subject-header {
@@ -715,11 +794,16 @@
 
         .modal-content {
             background: var(--bg-layer-1);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
             border: 1px solid var(--border);
             border-radius: var(--radius);
             width: 100%;
             max-width: 400px;
             box-shadow: var(--shadow-lg);
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 25px 50px -12px rgba(0, 0, 0, 0.5);
         }
 
         .modal-header {
@@ -786,17 +870,22 @@
 
         .modal-form input {
             width: 100%;
-            padding: 12px 14px;
+            padding: 14px 16px;
             background: var(--bg-layer-2);
             border: 1px solid var(--border);
             border-radius: 8px;
             color: var(--text-primary);
             font-size: 14px;
+            transition: all 0.2s ease;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         .modal-form input:focus {
             outline: none;
             border-color: var(--accent);
+            background: var(--bg-layer-3);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+            transform: translateY(-1px);
         }
 
         .modal-footer {
@@ -1258,8 +1347,15 @@
         }
 
         @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.7;
+            }
         }
 
         .alert-icon {
@@ -1374,10 +1470,18 @@
             color: var(--text-secondary);
         }
 
-        .safe .prediction-current { color: var(--success); }
-        .warning .prediction-current { color: var(--warning); }
+        .safe .prediction-current {
+            color: var(--success);
+        }
+
+        .warning .prediction-current {
+            color: var(--warning);
+        }
+
         .danger .prediction-current,
-        .critical .prediction-current { color: var(--danger); }
+        .critical .prediction-current {
+            color: var(--danger);
+        }
 
         /* Tab Navigation */
         .tab-nav {
@@ -1426,6 +1530,197 @@
                 grid-template-columns: 1fr;
             }
         }
+
+        /* ===== Auto-Sync Panel ===== */
+        .auto-sync-wrapper {
+            position: relative;
+        }
+
+        .auto-sync-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .auto-sync-btn .sync-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--text-muted);
+            display: inline-block;
+        }
+
+        .auto-sync-btn .sync-dot.active {
+            background: var(--success);
+            box-shadow: 0 0 6px var(--success);
+            animation: pulse-dot 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-dot {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.4;
+            }
+        }
+
+        .auto-sync-panel {
+            position: absolute;
+            top: calc(100% + 8px);
+            right: 0;
+            width: 300px;
+            background: rgba(20, 20, 20, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-hover);
+            border-radius: var(--radius);
+            padding: 20px;
+            z-index: 1000;
+            display: none;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .auto-sync-panel.open {
+            display: block;
+            animation: fadeSlideDown 0.2s ease;
+        }
+
+        @keyframes fadeSlideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .auto-sync-panel h4 {
+            color: var(--text-primary);
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .auto-sync-panel h4 i {
+            color: var(--accent);
+        }
+
+        .sync-toggle-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .sync-toggle-row label {
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 44px;
+            height: 24px;
+            cursor: pointer;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            inset: 0;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-slider::before {
+            content: '';
+            position: absolute;
+            width: 18px;
+            height: 18px;
+            left: 3px;
+            bottom: 3px;
+            background: var(--text-muted);
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-switch input:checked+.toggle-slider {
+            background: rgba(16, 185, 129, 0.3);
+        }
+
+        .toggle-switch input:checked+.toggle-slider::before {
+            transform: translateX(20px);
+            background: var(--success);
+        }
+
+        .sync-interval-row {
+            margin-bottom: 16px;
+        }
+
+        .sync-interval-row label {
+            display: block;
+            color: var(--text-secondary);
+            font-size: 12px;
+            margin-bottom: 8px;
+        }
+
+        .interval-options {
+            display: flex;
+            gap: 6px;
+        }
+
+        .interval-btn {
+            flex: 1;
+            padding: 8px 0;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--text-secondary);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: 12px;
+            font-family: inherit;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .interval-btn:hover {
+            border-color: var(--border-hover);
+            color: var(--text-primary);
+        }
+
+        .interval-btn.active {
+            background: rgba(16, 185, 129, 0.15);
+            border-color: var(--success);
+            color: var(--success);
+        }
+
+        .sync-status-info {
+            padding: 10px 12px;
+            background: var(--bg-layer-2);
+            border-radius: var(--radius-sm);
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .sync-status-info .next-sync {
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
     </style>
 </head>
 
@@ -1461,6 +1756,37 @@
                 <i class="fas fa-sync-alt"></i>
                 Refresh
             </button>
+            <div class="auto-sync-wrapper">
+                <button class="btn btn-ghost auto-sync-btn" onclick="toggleAutoSyncPanel()" id="autoSyncBtn">
+                    <span class="sync-dot" id="autoSyncDot"></span>
+                    <i class="fas fa-clock"></i>
+                    Auto
+                </button>
+                <div class="auto-sync-panel" id="autoSyncPanel">
+                    <h4><i class="fas fa-robot"></i> Auto-Sync Settings</h4>
+                    <div class="sync-toggle-row">
+                        <label>Enable auto-sync</label>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="autoSyncToggle" onchange="handleAutoSyncToggle()">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    <div class="sync-interval-row" id="intervalRow" style="opacity: 0.4; pointer-events: none;">
+                        <label>Sync every</label>
+                        <div class="interval-options">
+                            <button class="interval-btn" data-interval="6" onclick="setAutoSyncInterval(6)">6
+                                hrs</button>
+                            <button class="interval-btn active" data-interval="12" onclick="setAutoSyncInterval(12)">12
+                                hrs</button>
+                            <button class="interval-btn" data-interval="24" onclick="setAutoSyncInterval(24)">24
+                                hrs</button>
+                        </div>
+                    </div>
+                    <div class="sync-status-info" id="syncStatusInfo">
+                        <i class="fas fa-info-circle"></i> Auto-sync is disabled
+                    </div>
+                </div>
+            </div>
             <button class="btn btn-ghost" onclick="logout()" title="Logout">
                 <i class="fas fa-sign-out-alt"></i>
                 Logout
@@ -1870,7 +2196,7 @@
                 const safe = data.stats.safe;
                 const warning = data.stats.warning || 0;
                 const danger = data.stats.danger;
-                
+
                 // Use ERP overall attendance (directly from ERP)
                 const erpOverall = data.erp_overall || {};
                 const avg = erpOverall.percentage !== undefined ? erpOverall.percentage : data.stats.average;
@@ -2177,7 +2503,7 @@
         async function submitPastedTimetable() {
             const textarea = document.getElementById('pasteTextarea');
             const text = textarea.value.trim();
-            
+
             if (!text) {
                 alert('Please paste your timetable text');
                 return;
@@ -2192,7 +2518,7 @@
                 });
 
                 const data = await response.json();
-                
+
                 if (data.success) {
                     closePasteModal();
                     if (data.entries_saved > 0) {
@@ -2328,22 +2654,22 @@
 
         // Sync with ERP
         let isSyncing = false;
-        
+
         async function syncWithERP() {
             if (isSyncing) return;
-            
+
             try {
                 isSyncing = true;
                 updateSyncButton(true);
-                
+
                 const response = await fetch('/api/auto-sync', {
                     method: 'POST',
                     credentials: 'include',
                     headers: { 'Content-Type': 'application/json' }
                 });
-                
+
                 const data = await response.json();
-                
+
                 if (data.needs_credentials) {
                     // Need to prompt for credentials - load local data first
                     isSyncing = false;
@@ -2352,7 +2678,7 @@
                     showCredentialsModal();
                     return;
                 }
-                
+
                 if (data.success) {
                     // Poll for scrape status
                     pollScrapeStatus();
@@ -2370,7 +2696,7 @@
                 loadData();
             }
         }
-        
+
         function updateSyncButton(syncing) {
             const btn = document.querySelector('.btn-ghost[onclick*="sync"]');
             if (btn) {
@@ -2383,24 +2709,24 @@
                 }
             }
         }
-        
+
         async function pollScrapeStatus() {
             try {
                 const response = await fetch('/api/scrape-status', {
                     credentials: 'include'
                 });
                 const status = await response.json();
-                
+
                 if (status.running) {
                     // Still running, poll again
                     setTimeout(pollScrapeStatus, 2000);
                 } else {
                     isSyncing = false;
                     updateSyncButton(false);
-                    
+
                     if (status.error) {
                         // Check if it's a login failure
-                        if (status.error.toLowerCase().includes('login failed') || 
+                        if (status.error.toLowerCase().includes('login failed') ||
                             status.error.toLowerCase().includes('invalid credentials') ||
                             status.error.toLowerCase().includes('authentication')) {
                             showCredentialsModal(true); // Show with error message
@@ -2420,19 +2746,19 @@
                 loadData();
             }
         }
-        
+
         function showCredentialsModal(isLoginFailed = false) {
             const modal = document.createElement('div');
             modal.className = 'modal active';
             modal.id = 'credentialsModal';
-            
+
             const errorBanner = isLoginFailed ? `
                 <div style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; display: flex; align-items: center; gap: 10px;">
                     <i class="fas fa-exclamation-circle" style="color: #ef4444;"></i>
                     <span style="color: #fca5a5;">ERP login failed. Please check your credentials and try again.</span>
                 </div>
             ` : '';
-            
+
             modal.innerHTML = `
                 <div class="modal-content" style="max-width: 400px;">
                     <div class="modal-header">
@@ -2465,25 +2791,25 @@
             `;
             document.body.appendChild(modal);
         }
-        
+
         function closeCredentialsModal() {
             const modal = document.getElementById('credentialsModal');
             if (modal) modal.remove();
         }
-        
+
         async function submitCredentials() {
             const username = document.getElementById('erpUsername').value.trim();
             const password = document.getElementById('erpPassword').value;
-            
+
             if (!username || !password) {
                 alert('Please enter both username and password');
                 return;
             }
-            
+
             closeCredentialsModal();
             isSyncing = true;
             updateSyncButton(true);
-            
+
             try {
                 const response = await fetch('/api/scrape', {
                     method: 'POST',
@@ -2491,9 +2817,9 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ username, password })
                 });
-                
+
                 const data = await response.json();
-                
+
                 if (data.success) {
                     pollScrapeStatus();
                 } else {
@@ -2509,7 +2835,7 @@
         }
 
         // ============== ANALYTICS & PREDICTIONS ==============
-        
+
         let overallTrendChart = null;
         let weeklyTrendChart = null;
         let subjectComparisonChart = null;
@@ -2518,11 +2844,11 @@
             // Update active tab button
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            
+
             // Show selected tab content
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
             document.getElementById(tabName + 'Tab').classList.add('active');
-            
+
             // Load data based on tab
             if (tabName === 'predictions') {
                 loadPredictions();
@@ -2533,12 +2859,12 @@
 
         async function loadPredictions() {
             const container = document.getElementById('predictionsGrid');
-            
+
             try {
                 const response = await fetch('/api/predictions', {
                     credentials: 'include'
                 });
-                
+
                 if (!response.ok) {
                     console.log('No predictions available yet');
                     container.innerHTML = `
@@ -2550,9 +2876,9 @@
                     `;
                     return;
                 }
-                
+
                 const data = await response.json();
-                
+
                 if (data.success) {
                     renderRiskAlerts(data.risk_alerts || []);
                     renderPredictions(data.predictions || []);
@@ -2578,14 +2904,14 @@
         function renderRiskAlerts(alerts) {
             const alertsSection = document.getElementById('riskAlerts');
             const container = document.getElementById('alertsContainer');
-            
+
             if (!alerts || alerts.length === 0) {
                 alertsSection.style.display = 'none';
                 return;
             }
-            
+
             alertsSection.style.display = 'block';
-            
+
             let html = '';
             alerts.forEach(alert => {
                 const alertClass = alert.level === 'critical' ? 'critical' : 'danger';
@@ -2602,18 +2928,18 @@
                     </div>
                 `;
             });
-            
+
             container.innerHTML = html;
         }
 
         function renderPredictions(predictions) {
             const container = document.getElementById('predictionsGrid');
-            
+
             if (!predictions || predictions.length === 0) {
                 container.innerHTML = '<p style="color: var(--text-secondary);">No prediction data available.</p>';
                 return;
             }
-            
+
             let html = '';
             predictions.forEach(p => {
                 html += `
@@ -2650,7 +2976,7 @@
                     </div>
                 `;
             });
-            
+
             container.innerHTML = html;
         }
 
@@ -2659,15 +2985,15 @@
                 const response = await fetch('/api/trends?days=30', {
                     credentials: 'include'
                 });
-                
+
                 if (!response.ok) {
                     console.log('No trends data available yet');
                     showEmptyChartsMessage();
                     return;
                 }
-                
+
                 const data = await response.json();
-                
+
                 if (data.success) {
                     renderOverallTrendChart(data.overall_trend || []);
                     renderWeeklyTrendChart(data.weekly_trend || []);
@@ -2688,11 +3014,11 @@
                     <p>No trend data yet</p>
                 </div>
             `;
-            
+
             const overallCtx = document.getElementById('overallTrendChart');
             const weeklyCtx = document.getElementById('weeklyTrendChart');
             const comparisonCtx = document.getElementById('subjectComparisonChart');
-            
+
             if (overallCtx) overallCtx.parentElement.innerHTML = emptyMsg;
             if (weeklyCtx) weeklyCtx.parentElement.innerHTML = emptyMsg;
             if (comparisonCtx) comparisonCtx.parentElement.innerHTML = emptyMsg;
@@ -2701,11 +3027,11 @@
         function renderOverallTrendChart(trendData) {
             const ctx = document.getElementById('overallTrendChart');
             if (!ctx) return;
-            
+
             if (overallTrendChart) {
                 overallTrendChart.destroy();
             }
-            
+
             if (!trendData || trendData.length === 0) {
                 ctx.parentElement.innerHTML = `
                     <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: var(--text-muted);">
@@ -2716,7 +3042,7 @@
                 `;
                 return;
             }
-            
+
             overallTrendChart = new Chart(ctx, {
                 type: 'line',
                 data: {
@@ -2766,11 +3092,11 @@
         function renderWeeklyTrendChart(weeklyData) {
             const ctx = document.getElementById('weeklyTrendChart');
             if (!ctx) return;
-            
+
             if (weeklyTrendChart) {
                 weeklyTrendChart.destroy();
             }
-            
+
             if (!weeklyData || weeklyData.length === 0) {
                 ctx.parentElement.innerHTML = `
                     <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: var(--text-muted);">
@@ -2780,7 +3106,7 @@
                 `;
                 return;
             }
-            
+
             weeklyTrendChart = new Chart(ctx, {
                 type: 'bar',
                 data: {
@@ -2828,11 +3154,11 @@
         function renderSubjectComparisonChart(subjectData) {
             const ctx = document.getElementById('subjectComparisonChart');
             if (!ctx) return;
-            
+
             if (subjectComparisonChart) {
                 subjectComparisonChart.destroy();
             }
-            
+
             if (!subjectData || subjectData.length === 0) {
                 ctx.parentElement.innerHTML = `
                     <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: var(--text-muted);">
@@ -2842,10 +3168,10 @@
                 `;
                 return;
             }
-            
+
             // Truncate subject names for display
             const labels = subjectData.map(s => s.subject.length > 20 ? s.subject.substring(0, 20) + '...' : s.subject);
-            
+
             subjectComparisonChart = new Chart(ctx, {
                 type: 'bar',
                 data: {
@@ -2876,7 +3202,7 @@
                         },
                         tooltip: {
                             callbacks: {
-                                label: function(context) {
+                                label: function (context) {
                                     const idx = context.dataIndex;
                                     const s = subjectData[idx];
                                     return `${s.percentage}% (${s.present}/${s.total})`;
@@ -2900,10 +3226,157 @@
             });
         }
 
+        // ============== AUTO-SYNC SETTINGS ==============
+
+        let autoSyncEnabled = false;
+        let autoSyncInterval = 12;
+
+        function toggleAutoSyncPanel() {
+            const panel = document.getElementById('autoSyncPanel');
+            panel.classList.toggle('open');
+        }
+
+        // Close panel when clicking outside
+        document.addEventListener('click', function (e) {
+            const wrapper = document.querySelector('.auto-sync-wrapper');
+            if (wrapper && !wrapper.contains(e.target)) {
+                document.getElementById('autoSyncPanel').classList.remove('open');
+            }
+        });
+
+        async function loadAutoSyncSettings() {
+            try {
+                const response = await fetch('/api/auto-sync-schedule', {
+                    credentials: 'include'
+                });
+                if (!response.ok) return;
+                const data = await response.json();
+
+                autoSyncEnabled = data.enabled || false;
+                autoSyncInterval = data.interval || 12;
+
+                updateAutoSyncUI(data);
+            } catch (error) {
+                console.log('Could not load auto-sync settings:', error);
+            }
+        }
+
+        function updateAutoSyncUI(data) {
+            const toggle = document.getElementById('autoSyncToggle');
+            const dot = document.getElementById('autoSyncDot');
+            const intervalRow = document.getElementById('intervalRow');
+            const statusInfo = document.getElementById('syncStatusInfo');
+
+            toggle.checked = data.enabled;
+
+            if (data.enabled) {
+                dot.classList.add('active');
+                intervalRow.style.opacity = '1';
+                intervalRow.style.pointerEvents = 'auto';
+            } else {
+                dot.classList.remove('active');
+                intervalRow.style.opacity = '0.4';
+                intervalRow.style.pointerEvents = 'none';
+            }
+
+            // Update interval buttons
+            document.querySelectorAll('.interval-btn').forEach(btn => {
+                const val = parseInt(btn.dataset.interval);
+                btn.classList.toggle('active', val === (data.interval || 12));
+            });
+
+            // Update status info
+            if (data.enabled && data.next_run) {
+                const nextDate = new Date(data.next_run);
+                const now = new Date();
+                const diffMs = nextDate - now;
+                const diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
+                const diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+
+                let timeStr = '';
+                if (diffHrs > 0) timeStr = `${diffHrs}h ${diffMins}m`;
+                else if (diffMins > 0) timeStr = `${diffMins}m`;
+                else timeStr = 'soon';
+
+                statusInfo.innerHTML = `<i class="fas fa-check-circle" style="color: var(--success);"></i> Active &mdash; next sync in <span class="next-sync">${timeStr}</span>`;
+            } else if (data.enabled) {
+                statusInfo.innerHTML = `<i class="fas fa-check-circle" style="color: var(--success);"></i> Auto-sync is active (every ${data.interval || 12}h)`;
+            } else {
+                statusInfo.innerHTML = `<i class="fas fa-info-circle"></i> Auto-sync is disabled`;
+            }
+        }
+
+        async function handleAutoSyncToggle() {
+            const toggle = document.getElementById('autoSyncToggle');
+            const enabled = toggle.checked;
+
+            try {
+                const response = await fetch('/api/auto-sync-schedule', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        enabled: enabled,
+                        interval: autoSyncInterval
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.needs_credentials) {
+                    toggle.checked = false;
+                    showCredentialsModal();
+                    return;
+                }
+
+                if (data.success) {
+                    autoSyncEnabled = enabled;
+                    updateAutoSyncUI(data);
+                } else {
+                    toggle.checked = !enabled; // revert
+                    console.error('Auto-sync error:', data.error);
+                }
+            } catch (error) {
+                toggle.checked = !enabled; // revert
+                console.error('Auto-sync error:', error);
+            }
+        }
+
+        async function setAutoSyncInterval(hours) {
+            autoSyncInterval = hours;
+
+            // Update button UI immediately
+            document.querySelectorAll('.interval-btn').forEach(btn => {
+                btn.classList.toggle('active', parseInt(btn.dataset.interval) === hours);
+            });
+
+            if (!autoSyncEnabled) return; // Don't call API if not enabled
+
+            try {
+                const response = await fetch('/api/auto-sync-schedule', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        enabled: true,
+                        interval: hours
+                    })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    updateAutoSyncUI(data);
+                }
+            } catch (error) {
+                console.error('Interval update error:', error);
+            }
+        }
+
         // Initialize - run when DOM is ready
         document.addEventListener('DOMContentLoaded', function () {
             console.log('Dashboard loaded...');
             loadConfig();
+            loadAutoSyncSettings();
             // First load cached data immediately, then try ERP sync
             loadData().then(() => {
                 // Load predictions after data is loaded
@@ -2913,6 +3386,8 @@
             });
         });
     </script>
+
 </body>
+
 
 </html>

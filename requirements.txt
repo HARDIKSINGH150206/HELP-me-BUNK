@@ -10,3 +10,4 @@ certifi
 pytesseract
 Pillow
 cryptography
+APScheduler

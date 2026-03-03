@@ -52,13 +52,13 @@ class AttendanceCalculator:
         current_percentage = (present / total * 100) if total > 0 else 0
         
         # Calculate maximum classes that can be missed
-        total_future = total + future_classes
         max_bunks = 0
         
         # Calculate bunks while maintaining safe target
         for bunks in range(future_classes + 1):
             new_total = total + future_classes
-            new_percentage = (present / new_total) * 100
+            new_present = present + (future_classes - bunks)
+            new_percentage = (new_present / new_total * 100) if new_total > 0 else 0
             
             if new_percentage >= self.safe_target:
                 max_bunks = bunks
@@ -68,8 +68,13 @@ class AttendanceCalculator:
         # How many more classes needed to attend to reach safe zone if below
         classes_needed = 0
         if current_percentage < self.safe_target:
-            classes_needed = max(0, int((self.safe_target * total - 100 * present) / 
-                                       (100 - self.safe_target)) + 1)
+            if self.safe_target < 100:
+                classes_needed = max(0, int((self.safe_target * total - 100 * present) / 
+                                           (100 - self.safe_target)) + 1)
+            else:
+                # If target is 100% or more, we can never reach it if we are currently below it
+                # unless we attend infinite classes. Just set to a large number or 0.
+                classes_needed = 999
         
         return {
             'present': present,

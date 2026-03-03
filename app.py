@@ -40,6 +40,13 @@ except Exception as e:
     print(f"⚠ Database initialization failed: {e}")
     print("  Make sure MONGODB_URI environment variable is set correctly")
 
+# Initialize auto-sync scheduler
+from scheduler import init_scheduler, schedule_user_sync, remove_user_sync, get_user_schedule, shutdown_scheduler
+try:
+    init_scheduler(app)
+except Exception as e:
+    print(f"⚠ Scheduler initialization failed: {e}")
+
 # Store scraper status per user
 scraper_status = {}
 
@@ -287,12 +294,17 @@ def get_config():
     user_id = session['user_id']
     config = get_user_config(user_id)
     if config:
+        # Get auto-sync schedule
+        schedule = get_user_schedule(user_id)
         return jsonify({
             'semester_start': config.get('semester_start'),
             'semester_end': config.get('semester_end'),
             'target_percentage': config.get('target_percentage', 75),
             'setup_complete': config.get('setup_complete', False),
-            'username': session.get('username')
+            'username': session.get('username'),
+            'auto_sync_enabled': schedule.get('enabled', False),
+            'auto_sync_interval': schedule.get('interval', 12),
+            'auto_sync_next_run': schedule.get('next_run')
         })
     return jsonify({'setup_complete': False})
 
@@ -498,6 +510,61 @@ def auto_sync():
         thread.start()
         
         return jsonify({'success': True, 'message': 'Syncing with ERP...'})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/auto-sync-schedule', methods=['GET'])
+@login_required
+def get_auto_sync_schedule():
+    """Get current auto-sync schedule settings"""
+    user_id = session['user_id']
+    schedule = get_user_schedule(user_id)
+    return jsonify(schedule)
+
+
+@app.route('/api/auto-sync-schedule', methods=['POST'])
+@login_required
+def set_auto_sync_schedule():
+    """Set auto-sync schedule (enable/disable, change interval)"""
+    try:
+        user_id = session['user_id']
+        data = request.json
+        enabled = data.get('enabled')
+        interval = data.get('interval')  # hours: 6, 12, or 24
+
+        if enabled is None:
+            return jsonify({'error': 'enabled field is required'}), 400
+
+        if enabled:
+            # Check if ERP credentials exist
+            credentials = db.get_erp_credentials(user_id)
+            if not credentials:
+                return jsonify({
+                    'error': 'ERP credentials not configured. Set up your ERP credentials first.',
+                    'needs_credentials': True
+                }), 400
+
+            interval = int(interval) if interval else 12
+            if interval not in (6, 12, 24):
+                return jsonify({'error': 'Interval must be 6, 12, or 24 hours'}), 400
+
+            schedule_user_sync(user_id, interval)
+            schedule = get_user_schedule(user_id)
+            return jsonify({
+                'success': True,
+                'message': f'Auto-sync enabled every {interval} hours',
+                **schedule
+            })
+        else:
+            remove_user_sync(user_id)
+            return jsonify({
+                'success': True,
+                'message': 'Auto-sync disabled',
+                'enabled': False,
+                'interval': 12,
+                'next_run': None
+            })
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
