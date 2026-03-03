@@ -728,6 +728,113 @@ def get_timetable_route():
         return jsonify({'error': str(e)}), 500
 
 
+@app.route('/api/timetable/today')
+@login_required
+def get_today_schedule():
+    """Get today's schedule with detailed bunk status for each class"""
+    try:
+        from datetime import datetime
+        user_id = session['user_id']
+        
+        # Get today's day of week (0=Monday, 6=Sunday)
+        today_day = datetime.now().weekday()
+        
+        # Get timetable entries for today
+        timetable = db.get_timetable(user_id)
+        today_classes = [t for t in timetable if t.get('day') == today_day]
+        
+        # Get attendance data
+        attendance = db.get_attendance(user_id)
+        attendance_map = {s['subject']: s for s in attendance}
+        
+        # Get user's target percentage
+        config = get_user_config(user_id)
+        target_pct = config.get('target_percentage', 75) if config else 75
+        
+        # Initialize calculator
+        calculator = AttendanceCalculator(target_percentage=target_pct, safety_buffer=1.0)
+        
+        # Enhance with bunk analysis
+        today_schedule = []
+        for class_entry in today_classes:
+            subject_name = class_entry.get('subject', '')
+            
+            # Find matching attendance record
+            att = None
+            for att_subject, att_data in attendance_map.items():
+                if subject_name.lower() in att_subject.lower() or att_subject.lower() in subject_name.lower():
+                    att = att_data
+                    break
+            
+            if att:
+                present = att.get('present', 0)
+                total = att.get('total', 0)
+                current_pct = att.get('percentage', 0)
+                
+                # Use the calculator to determine bunk status
+                bunk_info = calculator.can_bunk_class(subject_name, present, total)
+                
+                today_schedule.append({
+                    'subject': subject_name,
+                    'start_time': class_entry.get('start_time'),
+                    'end_time': class_entry.get('end_time'),
+                    'current_percentage': bunk_info['current_percentage'],
+                    'projected_percentage': bunk_info['projected_percentage'],
+                    'can_bunk': bunk_info['can_bunk'],
+                    'status': bunk_info['status'],  # SAFE, WARNING, or DANGER
+                    'reason': bunk_info['reason'],
+                    'buffer': bunk_info['buffer'],
+                    'present': present,
+                    'total': total
+                })
+            else:
+                # No attendance data for this subject yet
+                today_schedule.append({
+                    'subject': subject_name,
+                    'start_time': class_entry.get('start_time'),
+                    'end_time': class_entry.get('end_time'),
+                    'current_percentage': 0,
+                    'projected_percentage': 0,
+                    'can_bunk': False,
+                    'status': 'NO_DATA',
+                    'reason': 'No attendance data available for this subject',
+                    'buffer': 0,
+                    'present': 0,
+                    'total': 0
+                })
+        
+        # Sort by start time
+        today_schedule.sort(key=lambda x: x['start_time'] or '00:00')
+        
+        # Get summary stats for today
+        safe_count = sum(1 for c in today_schedule if c['can_bunk'])
+        danger_count = sum(1 for c in today_schedule if c['status'] == 'DANGER')
+        warning_count = sum(1 for c in today_schedule if c['status'] == 'WARNING')
+        no_data_count = sum(1 for c in today_schedule if c['status'] == 'NO_DATA')
+        
+        return jsonify({
+            'success': True,
+            'today': {
+                'date': datetime.now().strftime('%Y-%m-%d'),
+                'day_name': ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'][today_day],
+                'day_of_week': today_day
+            },
+            'schedule': today_schedule,
+            'summary': {
+                'total_classes': len(today_schedule),
+                'safe_to_bunk': safe_count,
+                'dangerous_to_skip': danger_count,
+                'warning_zone': warning_count,
+                'no_data': no_data_count
+            },
+            'target_percentage': target_pct
+        })
+        
+    except Exception as e:
+        print(f"Error in get_today_schedule: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
 @app.route('/api/timetable/add', methods=['POST'])
 @login_required
 def add_timetable_entry_route():

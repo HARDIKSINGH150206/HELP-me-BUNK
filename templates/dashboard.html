@@ -1992,11 +1992,137 @@
                 </div>
             </div>
 
+            <!-- Today's Schedule Section -->
+            <div id="todayScheduleSection" style="display: none; margin-bottom: 24px;">
+                <h3 style="color: var(--text-primary); margin-bottom: 12px;">
+                    <i class="fas fa-calendar-check" style="color: var(--accent); margin-right: 8px;"></i>
+                    Today's Schedule
+                </h3>
+                <div id="todayScheduleContainer" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; margin-bottom: 20px;">
+                    <!-- Today's classes will be loaded here -->
+                </div>
+            </div>
+
             <div class="weekly-calendar" id="weeklyCalendar">
                 <!-- Days will be populated by JavaScript -->
             </div>
         </div>
     </div>
+
+    <style>
+        /* Add styles for today's schedule cards */
+        .todays-class-card {
+            background: var(--bg-layer-1);
+            border: 2px solid transparent;
+            border-radius: 12px;
+            padding: 16px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .todays-class-card.safe {
+            border-color: rgba(16, 185, 129, 0.4);
+            background: rgba(16, 185, 129, 0.08);
+        }
+
+        .todays-class-card.warning {
+            border-color: rgba(245, 158, 11, 0.4);
+            background: rgba(245, 158, 11, 0.08);
+        }
+
+        .todays-class-card.danger {
+            border-color: rgba(239, 68, 68, 0.4);
+            background: rgba(239, 68, 68, 0.08);
+        }
+
+        .todays-class-card.no-data {
+            border-color: rgba(107, 114, 128, 0.4);
+            background: rgba(107, 114, 128, 0.08);
+        }
+
+        .todays-class-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .class-time {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--accent);
+            margin-bottom: 8px;
+        }
+
+        .class-subject {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+            word-break: break-word;
+        }
+
+        .class-bunk-status {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            font-size: 13px;
+        }
+
+        .class-bunk-status.safe {
+            background: rgba(16, 185, 129, 0.15);
+            color: #10b981;
+        }
+
+        .class-bunk-status.warning {
+            background: rgba(245, 158, 11, 0.15);
+            color: #f59e0b;
+        }
+
+        .class-bunk-status.danger {
+            background: rgba(239, 68, 68, 0.15);
+            color: #ef4444;
+        }
+
+        .class-bunk-status.no-data {
+            background: rgba(107, 114, 128, 0.15);
+            color: #6b7280;
+        }
+
+        .bunk-icon {
+            margin-right: 6px;
+        }
+
+        .bunk-message {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid var(--border);
+        }
+
+        .attendance-preview {
+            display: flex;
+            gap: 12px;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border);
+        }
+
+        .attendance-item {
+            flex: 1;
+            text-align: center;
+            font-size: 12px;
+        }
+
+        .attendance-item-value {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .attendance-item-label {
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+    </style>
 
     <script>
         let allSubjects = [];
@@ -2317,11 +2443,96 @@
                 const data = await response.json();
                 timetableData = data.timetable || [];
                 renderCalendar(timetableData);
+                
+                // Also load today's schedule
+                loadTodaySchedule();
 
             } catch (error) {
                 console.log('Could not load timetable:', error);
                 renderEmptyCalendar();
             }
+        }
+
+        async function loadTodaySchedule() {
+            try {
+                const response = await fetch('/api/timetable/today', {
+                    credentials: 'include'
+                });
+
+                if (!response.ok) {
+                    console.log('Could not load today\'s schedule');
+                    document.getElementById('todayScheduleSection').style.display = 'none';
+                    return;
+                }
+
+                const data = await response.json();
+                
+                if (data.schedule && data.schedule.length > 0) {
+                    renderTodaySchedule(data);
+                } else {
+                    document.getElementById('todayScheduleSection').style.display = 'none';
+                }
+
+            } catch (error) {
+                console.log('Error loading today\'s schedule:', error);
+                document.getElementById('todayScheduleSection').style.display = 'none';
+            }
+        }
+
+        function renderTodaySchedule(data) {
+            const section = document.getElementById('todayScheduleSection');
+            const container = document.getElementById('todayScheduleContainer');
+            
+            section.style.display = 'block';
+
+            let html = '';
+
+            data.schedule.forEach(classItem => {
+                const statusClass = classItem.status.toLowerCase() === 'safe' ? 'safe' : 
+                                   classItem.status.toLowerCase() === 'warning' ? 'warning' :
+                                   classItem.status.toLowerCase() === 'danger' ? 'danger' : 'no-data';
+                
+                const statusIcon = classItem.status === 'SAFE' ? 'fa-check-circle' :
+                                  classItem.status === 'WARNING' ? 'fa-exclamation-circle' :
+                                  classItem.status === 'DANGER' ? 'fa-times-circle' : 'fa-question-circle';
+                
+                const canBunkText = classItem.can_bunk 
+                    ? '<strong>✓ Safe to Skip</strong>' 
+                    : '<strong>✗ Don\'t Skip</strong>';
+
+                html += `
+                    <div class="todays-class-card ${statusClass}">
+                        <div class="class-time">
+                            <i class="fas fa-clock" style="margin-right: 6px;"></i>
+                            ${classItem.start_time || '?'} - ${classItem.end_time || '?'}
+                        </div>
+                        <div class="class-subject">${classItem.subject}</div>
+                        <div class="class-bunk-status ${statusClass}">
+                            <i class="fas ${statusIcon} bunk-icon"></i>
+                            ${canBunkText}
+                        </div>
+                        <div class="attendance-preview">
+                            <div class="attendance-item">
+                                <div class="attendance-item-value">${classItem.current_percentage}%</div>
+                                <div class="attendance-item-label">Now</div>
+                            </div>
+                            <div class="attendance-item">
+                                <div class="attendance-item-value">${classItem.projected_percentage}%</div>
+                                <div class="attendance-item-label">If Skip</div>
+                            </div>
+                            <div class="attendance-item">
+                                <div class="attendance-item-value">${classItem.present}/${classItem.total}</div>
+                                <div class="attendance-item-label">Classes</div>
+                            </div>
+                        </div>
+                        <div class="bunk-message">
+                            ${classItem.reason}
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
         }
 
         function renderEmptyCalendar() {

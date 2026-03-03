@@ -86,6 +86,48 @@ class AttendanceCalculator:
             'buffer': round(current_percentage - self.target_percentage, 2)
         }
     
+    def can_bunk_class(self, subject_name, present, total):
+        """
+        Check if a single class of a subject can be safely bunked
+        
+        Args:
+            subject_name: Name of the subject
+            present: Classes attended so far
+            total: Total classes conducted so far
+        
+        Returns:
+            Dictionary with bunk status and recommendation
+        """
+        current_percentage = (present / total * 100) if total > 0 else 0
+        
+        # Simulate bunking this class
+        new_total = total + 1
+        new_present = present  # Not attending the class
+        projected_percentage = (new_present / new_total * 100) if new_total > 0 else 0
+        
+        # Determine status
+        is_safe = projected_percentage >= self.safe_target
+        is_warning = projected_percentage >= self.target_percentage and projected_percentage < self.safe_target
+        
+        return {
+            'subject': subject_name,
+            'current_percentage': round(current_percentage, 2),
+            'projected_percentage': round(projected_percentage, 2),
+            'can_bunk': is_safe,
+            'status': 'SAFE' if is_safe else ('WARNING' if is_warning else 'DANGER'),
+            'reason': self._get_bunk_reason(current_percentage, projected_percentage),
+            'buffer': round(projected_percentage - self.target_percentage, 2)
+        }
+    
+    def _get_bunk_reason(self, current_pct, projected_pct):
+        """Generate reason for bunk status"""
+        if projected_pct >= self.safe_target:
+            return f"Safe! After bunking: {projected_pct:.1f}% (≥{self.safe_target}%)"
+        elif projected_pct >= self.target_percentage:
+            return f"Warning: After bunking: {projected_pct:.1f}% (≥75% but <{self.safe_target}%)"
+        else:
+            return f"Danger: After bunking: {projected_pct:.1f}% (<75% threshold)"
+    
     def analyze_all_subjects(self, future_classes=20):
         """Analyze all subjects and provide recommendations"""
         print(f"\n{'='*70}")
