@@ -38,7 +38,7 @@ def _restore_all_schedules():
         restored = 0
         for user in users:
             user_id = user['id']
-            interval = user.get('auto_sync_interval', 12)
+            interval = user.get('auto_sync_interval', 2)
             _add_job(user_id, interval)
             restored += 1
         if restored > 0:
@@ -118,12 +118,13 @@ def schedule_user_sync(user_id, interval_hours):
     import database as db
 
     # Validate interval
-    if interval_hours not in (6, 12, 24):
-        raise ValueError("Interval must be 6, 12, or 24 hours")
+    if interval_hours not in (1, 2, 4):
+        raise ValueError("Interval must be 1, 2, or 4 hours")
 
     # Save to database
     db.update_user_config(
         user_id,
+        
         auto_sync_enabled=True,
         auto_sync_interval=interval_hours
     )
@@ -164,10 +165,10 @@ def get_user_schedule(user_id):
 
     user = db.get_user(user_id)
     if not user:
-        return {'enabled': False, 'interval': 12, 'next_run': None}
+        return {'enabled': False, 'interval': 2, 'next_run': None}
 
     enabled = user.get('auto_sync_enabled', False)
-    interval = user.get('auto_sync_interval', 12)
+    interval = user.get('auto_sync_interval', 2)
     next_run = None
 
     if scheduler and enabled:

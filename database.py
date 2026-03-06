@@ -347,7 +347,7 @@ def get_all_users_with_auto_sync():
             if user.get('auto_sync_enabled'):
                 users.append({
                     'id': user_id,
-                    'auto_sync_interval': user.get('auto_sync_interval', 12)
+                    'auto_sync_interval': user.get('auto_sync_interval', 2)
                 })
         return users
     
@@ -362,7 +362,7 @@ def get_all_users_with_auto_sync():
     for user in cursor:
         users.append({
             'id': str(user['_id']),
-            'auto_sync_interval': user.get('auto_sync_interval', 12)
+            'auto_sync_interval': user.get('auto_sync_interval', 2)
         })
     return users
 

@@ -1774,11 +1774,11 @@
                     <div class="sync-interval-row" id="intervalRow" style="opacity: 0.4; pointer-events: none;">
                         <label>Sync every</label>
                         <div class="interval-options">
-                            <button class="interval-btn" data-interval="6" onclick="setAutoSyncInterval(6)">6
+                            <button class="interval-btn" data-interval="1" onclick="setAutoSyncInterval(1)">1
+                                hr</button>
+                            <button class="interval-btn active" data-interval="2" onclick="setAutoSyncInterval(2)">2
                                 hrs</button>
-                            <button class="interval-btn active" data-interval="12" onclick="setAutoSyncInterval(12)">12
-                                hrs</button>
-                            <button class="interval-btn" data-interval="24" onclick="setAutoSyncInterval(24)">24
+                            <button class="interval-btn" data-interval="3" onclick="setAutoSyncInterval(3)">3
                                 hrs</button>
                         </div>
                     </div>
@@ -1998,7 +1998,8 @@
                     <i class="fas fa-calendar-check" style="color: var(--accent); margin-right: 8px;"></i>
                     Today's Schedule
                 </h3>
-                <div id="todayScheduleContainer" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; margin-bottom: 20px;">
+                <div id="todayScheduleContainer"
+                    style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; margin-bottom: 20px;">
                     <!-- Today's classes will be loaded here -->
                 </div>
             </div>
@@ -2443,7 +2444,7 @@
                 const data = await response.json();
                 timetableData = data.timetable || [];
                 renderCalendar(timetableData);
-                
+
                 // Also load today's schedule
                 loadTodaySchedule();
 
@@ -2466,7 +2467,7 @@
                 }
 
                 const data = await response.json();
-                
+
                 if (data.schedule && data.schedule.length > 0) {
                     renderTodaySchedule(data);
                 } else {
@@ -2482,22 +2483,22 @@
         function renderTodaySchedule(data) {
             const section = document.getElementById('todayScheduleSection');
             const container = document.getElementById('todayScheduleContainer');
-            
+
             section.style.display = 'block';
 
             let html = '';
 
             data.schedule.forEach(classItem => {
-                const statusClass = classItem.status.toLowerCase() === 'safe' ? 'safe' : 
-                                   classItem.status.toLowerCase() === 'warning' ? 'warning' :
-                                   classItem.status.toLowerCase() === 'danger' ? 'danger' : 'no-data';
-                
+                const statusClass = classItem.status.toLowerCase() === 'safe' ? 'safe' :
+                    classItem.status.toLowerCase() === 'warning' ? 'warning' :
+                        classItem.status.toLowerCase() === 'danger' ? 'danger' : 'no-data';
+
                 const statusIcon = classItem.status === 'SAFE' ? 'fa-check-circle' :
-                                  classItem.status === 'WARNING' ? 'fa-exclamation-circle' :
-                                  classItem.status === 'DANGER' ? 'fa-times-circle' : 'fa-question-circle';
-                
-                const canBunkText = classItem.can_bunk 
-                    ? '<strong>✓ Safe to Skip</strong>' 
+                    classItem.status === 'WARNING' ? 'fa-exclamation-circle' :
+                        classItem.status === 'DANGER' ? 'fa-times-circle' : 'fa-question-circle';
+
+                const canBunkText = classItem.can_bunk
+                    ? '<strong>✓ Safe to Skip</strong>'
                     : '<strong>✗ Don\'t Skip</strong>';
 
                 html += `
@@ -3440,7 +3441,7 @@
         // ============== AUTO-SYNC SETTINGS ==============
 
         let autoSyncEnabled = false;
-        let autoSyncInterval = 12;
+        let autoSyncInterval = 2;
 
         function toggleAutoSyncPanel() {
             const panel = document.getElementById('autoSyncPanel');
@@ -3464,7 +3465,7 @@
                 const data = await response.json();
 
                 autoSyncEnabled = data.enabled || false;
-                autoSyncInterval = data.interval || 12;
+                autoSyncInterval = data.interval || 2;
 
                 updateAutoSyncUI(data);
             } catch (error) {

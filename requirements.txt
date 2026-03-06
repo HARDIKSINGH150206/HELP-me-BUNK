@@ -11,3 +11,4 @@ pytesseract
 Pillow
 cryptography
 APScheduler
+requests

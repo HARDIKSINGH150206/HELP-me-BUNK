@@ -28,9 +28,7 @@
       "erp_overall_present": 5,
       "erp_overall_total": 20,
       "erp_overall_percentage": 25.0,
-      "erp_overall_updated": "2026-03-02T00:20:03.108173",
-      "auto_sync_enabled": true,
-      "auto_sync_interval": 6
+      "erp_overall_updated": "2026-03-02T00:20:03.108173"
     },
     "28bc5c48-1749-4311-9fca-": {
       "username": "abhi",
@@ -55,9 +53,7 @@
       "erp_overall_present": 8,
       "erp_overall_total": 20,
       "erp_overall_percentage": 40.0,
-      "erp_overall_updated": "2026-03-02T10:26:50.476603",
-      "auto_sync_enabled": true,
-      "auto_sync_interval": 6
+      "erp_overall_updated": "2026-03-02T10:26:50.476603"
     },
     "f49a265e-e436-4fe7-b6d3-": {
       "username": "ayu",
@@ -82,9 +78,7 @@
       "erp_overall_present": 18,
       "erp_overall_total": 20,
       "erp_overall_percentage": 90.0,
-      "erp_overall_updated": "2026-03-02T11:05:15.630413",
-      "auto_sync_enabled": false,
-      "auto_sync_interval": 12
+      "erp_overall_updated": "2026-03-02T11:05:15.630413"
     },
     "035c304a-dc40-4065-b0fc-": {
       "username": "hardik",
@@ -94,14 +88,13 @@
       "semester_end": "2026-07-02",
       "target_percentage": 75,
       "created_at": "2026-03-02T11:00:10.571961",
-      "last_login": "2026-03-02T19:27:10.355407",
+      "last_login": "2026-03-05T21:55:03.913830",
       "erp_password_encrypted": "gAAAAABppSBzk0Gj_ykwLsKnGZKZcn68BnSYS3Abm4abNpzYDrCHyrxQv1Gktlwih4D4R53v3JjZGdXkJbRvHFWWNf4yvxtQOA==",
-      "erp_overall_present": 8,
-      "erp_overall_total": 23,
-      "erp_overall_percentage": 34.78,
-      "erp_overall_updated": "2026-03-03T10:27:27.844988",
-      "auto_sync_enabled": false,
-      "auto_sync_interval": 6
+      "erp_overall_present": 10,
+      "erp_overall_total": 29,
+      "erp_overall_percentage": 34.48,
+      "erp_overall_updated": "2026-03-05T21:55:37.771498",
+      "telegram_chat_id": "8325368782"
     },
     "244b48c8-711d-48b7-86e1-": {
       "username": "harrys",
@@ -117,6 +110,38 @@
       "erp_overall_total": 23,
       "erp_overall_percentage": 34.78,
       "erp_overall_updated": "2026-03-03T10:28:07.417777"
+    },
+    "c0390dc4-b5df-4a3d-bf5c-": {
+      "username": "HSSS",
+      "password_hash": "scrypt:32768:8:1$XLgbV75brkhgxqfu$3a0c01e989bccdfb2b861baa1cd8299aff7939295b18409946f673bfd9899e530672ffbd332e9f5707a70f7ce7ef1f44eb7367df9d885032d11927d0f4123223",
+      "erp_username": "AIT24BECS108",
+      "semester_start": "2026-03-03",
+      "semester_end": "2026-07-03",
+      "target_percentage": 75,
+      "created_at": "2026-03-03T10:49:22.590060",
+      "last_login": null,
+      "erp_password_encrypted": "gAAAAABppm9y7tDfnwuCzTVWbrNPgdaGqy9bbFnpaxPEr0NuN3SzVTzON_Q9Ww-bVdBCvN9TzFhGngYlQtCHMD22R9BaxjhOoQ==",
+      "erp_overall_present": 9,
+      "erp_overall_total": 25,
+      "erp_overall_percentage": 36.0,
+      "erp_overall_updated": "2026-03-03T16:27:11.936996"
+    },
+    "81b6565d-fbc1-4457-9bb7-": {
+      "username": "hardiksingh",
+      "password_hash": "scrypt:32768:8:1$SsjSAIwMHSBQbC8a$448486cbc0f8170dac94385b21d1ed1a8181705bf72e1dd53b3739d2f5363d1bbd26cfc78af50c66bcac3ab866a400a9063bdf0f81f9e10b5a6bde90d1bba851",
+      "erp_username": "AIT24BECS108",
+      "semester_start": "2026-03-03",
+      "semester_end": "2026-07-03",
+      "target_percentage": 75,
+      "created_at": "2026-03-03T16:27:27.707041",
+      "last_login": null,
+      "erp_password_encrypted": "gAAAAABppr6_L4LOE4BHXZNIEYLRh0MtKxipYOLBDOxSZOxk6tn4A3rvVtBUAwD0O-H9PfJCuOM8EVIqv6HZnHsuZnsH4a3GlA==",
+      "erp_overall_present": 14,
+      "erp_overall_total": 33,
+      "erp_overall_percentage": 42.42,
+      "erp_overall_updated": "2026-03-06T14:07:36.847768",
+      "auto_sync_enabled": true,
+      "auto_sync_interval": 1
     }
   },
   "attendance": {
@@ -307,49 +332,56 @@
         "present": 2,
         "total": 4,
         "percentage": 50.0,
-        "last_updated": "2026-03-03T10:27:27.844959"
+        "last_updated": "2026-03-05T21:55:37.771469"
       },
       "Analysis & Design of Algorithms Lab": {
         "subject": "Analysis & Design of Algorithms Lab",
-        "present": 0,
-        "total": 1,
-        "percentage": 0.0,
-        "last_updated": "2026-03-03T10:27:27.844963"
+        "present": 1,
+        "total": 2,
+        "percentage": 50.0,
+        "last_updated": "2026-03-05T21:55:37.771476"
       },
       "Biology For Computer Engineers": {
         "subject": "Biology For Computer Engineers",
         "present": 0,
         "total": 1,
         "percentage": 0.0,
-        "last_updated": "2026-03-03T10:27:27.844966"
+        "last_updated": "2026-03-05T21:55:37.771480"
       },
       "Database Management Systems": {
         "subject": "Database Management Systems",
         "present": 2,
-        "total": 5,
-        "percentage": 40.0,
-        "last_updated": "2026-03-03T10:27:27.844968"
+        "total": 6,
+        "percentage": 33.33,
+        "last_updated": "2026-03-05T21:55:37.771483"
       },
       "Discrete Mathematical Structures": {
         "subject": "Discrete Mathematical Structures",
         "present": 3,
-        "total": 6,
-        "percentage": 50.0,
-        "last_updated": "2026-03-03T10:27:27.844972"
+        "total": 7,
+        "percentage": 42.86,
+        "last_updated": "2026-03-05T21:55:37.771486"
       },
       "Microcontrollers": {
         "subject": "Microcontrollers",
-        "present": 1,
-        "total": 4,
-        "percentage": 25.0,
-        "last_updated": "2026-03-03T10:27:27.844977"
+        "present": 2,
+        "total": 6,
+        "percentage": 33.33,
+        "last_updated": "2026-03-05T21:55:37.771489"
       },
       "Universal human values course": {
         "subject": "Universal human values course",
         "present": 0,
         "total": 1,
         "percentage": 0.0,
-        "last_updated": "2026-03-03T10:27:27.844981"
+        "last_updated": "2026-03-05T21:55:37.771492"
+      },
+      "2of6classes": {
+        "subject": "2of6classes",
+        "present": 0,
+        "total": 2,
+        "percentage": 0.0,
+        "last_updated": "2026-03-05T21:55:37.771434"
       }
     },
     "8c6a6e25-0182-44c7-ab1d-": {
@@ -466,6 +498,143 @@
         "total": 1,
         "percentage": 0.0,
         "last_updated": "2026-03-03T10:28:07.417771"
+      }
+    },
+    "c0390dc4-b5df-4a3d-bf5c-": {
+      "1of4classes": {
+        "subject": "1of4classes",
+        "present": 0,
+        "total": 1,
+        "percentage": 0.0,
+        "last_updated": "2026-03-03T10:50:10.950748"
+      },
+      "Analysis & Design of Algorithms": {
+        "subject": "Analysis & Design of Algorithms",
+        "present": 2,
+        "total": 4,
+        "percentage": 50.0,
+        "last_updated": "2026-03-03T16:27:11.936953"
+      },
+      "Analysis & Design of Algorithms Lab": {
+        "subject": "Analysis & Design of Algorithms Lab",
+        "present": 0,
+        "total": 1,
+        "percentage": 0.0,
+        "last_updated": "2026-03-03T16:27:11.936963"
+      },
+      "Biology For Computer Engineers": {
+        "subject": "Biology For Computer Engineers",
+        "present": 0,
+        "total": 1,
+        "percentage": 0.0,
+        "last_updated": "2026-03-03T16:27:11.936968"
+      },
+      "Database Management Systems": {
+        "subject": "Database Management Systems",
+        "present": 2,
+        "total": 5,
+        "percentage": 40.0,
+        "last_updated": "2026-03-03T16:27:11.936974"
+      },
+      "Discrete Mathematical Structures": {
+        "subject": "Discrete Mathematical Structures",
+        "present": 3,
+        "total": 6,
+        "percentage": 50.0,
+        "last_updated": "2026-03-03T16:27:11.936979"
+      },
+      "Microcontrollers": {
+        "subject": "Microcontrollers",
+        "present": 2,
+        "total": 5,
+        "percentage": 40.0,
+        "last_updated": "2026-03-03T16:27:11.936984"
+      },
+      "Universal human values course": {
+        "subject": "Universal human values course",
+        "present": 0,
+        "total": 1,
+        "percentage": 0.0,
+        "last_updated": "2026-03-03T16:27:11.936989"
+      },
+      "2of5classes": {
+        "subject": "2of5classes",
+        "present": 0,
+        "total": 2,
+        "percentage": 0.0,
+        "last_updated": "2026-03-03T16:27:11.936929"
+      }
+    },
+    "81b6565d-fbc1-4457-9bb7-": {
+      "2of5classes": {
+        "subject": "2of5classes",
+        "present": 0,
+        "total": 2,
+        "percentage": 0.0,
+        "last_updated": "2026-03-04T11:15:17.808080"
+      },
+      "Analysis & Design of Algorithms": {
+        "subject": "Analysis & Design of Algorithms",
+        "present": 2,
+        "total": 4,
+        "percentage": 50.0,
+        "last_updated": "2026-03-06T14:07:36.847739"
+      },
+      "Analysis & Design of Algorithms Lab": {
+        "subject": "Analysis & Design of Algorithms Lab",
+        "present": 1,
+        "total": 2,
+        "percentage": 50.0,
+        "last_updated": "2026-03-06T14:07:36.847745"
+      },
+      "Biology For Computer Engineers": {
+        "subject": "Biology For Computer Engineers",
+        "present": 1,
+        "total": 2,
+        "percentage": 50.0,
+        "last_updated": "2026-03-06T14:07:36.847749"
+      },
+      "Database Management Systems": {
+        "subject": "Database Management Systems",
+        "present": 2,
+        "total": 6,
+        "percentage": 33.33,
+        "last_updated": "2026-03-06T14:07:36.847753"
+      },
+      "Discrete Mathematical Structures": {
+        "subject": "Discrete Mathematical Structures",
+        "present": 4,
+        "total": 8,
+        "percentage": 50.0,
+        "last_updated": "2026-03-06T14:07:36.847757"
+      },
+      "Microcontrollers": {
+        "subject": "Microcontrollers",
+        "present": 3,
+        "total": 7,
+        "percentage": 42.86,
+        "last_updated": "2026-03-06T14:07:36.847760"
+      },
+      "Universal human values course": {
+        "subject": "Universal human values course",
+        "present": 1,
+        "total": 2,
+        "percentage": 50.0,
+        "last_updated": "2026-03-06T14:07:36.847763"
+      },
+      "2of6classes": {
+        "subject": "2of6classes",
+        "present": 0,
+        "total": 2,
+        "percentage": 0.0,
+        "last_updated": "2026-03-06T09:41:06.754275"
+      },
+      "3of7classes": {
+        "subject": "3of7classes",
+        "present": 0,
+        "total": 2,
+        "percentage": 0.0,
+        "last_updated": "2026-03-06T14:07:36.847710"
       }
     }
   },
@@ -1309,6 +1478,55 @@
             "total": 1
           }
         ]
+      },
+      {
+        "scraped_at": "2026-03-05T21:55:37.771508",
+        "subject_count": 8,
+        "total_present": 10,
+        "total_classes": 29,
+        "overall_percentage": 34.48,
+        "subjects_snapshot": [
+          {
+            "subject": "2of6classes",
+            "present": 0,
+            "total": 2
+          },
+          {
+            "subject": "Analysis & Design of Algorithms",
+            "present": 2,
+            "total": 4
+          },
+          {
+            "subject": "Analysis & Design of Algorithms Lab",
+            "present": 1,
+            "total": 2
+          },
+          {
+            "subject": "Biology For Computer Engineers",
+            "present": 0,
+            "total": 1
+          },
+          {
+            "subject": "Database Management Systems",
+            "present": 2,
+            "total": 6
+          },
+          {
+            "subject": "Discrete Mathematical Structures",
+            "present": 3,
+            "total": 7
+          },
+          {
+            "subject": "Microcontrollers",
+            "present": 2,
+            "total": 6
+          },
+          {
+            "subject": "Universal human values course",
+            "present": 0,
+            "total": 1
+          }
+        ]
       }
     ],
     "8c6a6e25-0182-44c7-ab1d-": [
@@ -1412,7 +1630,856 @@
           }
         ]
       }
+    ],
+    "c0390dc4-b5df-4a3d-bf5c-": [
+      {
+        "scraped_at": "2026-03-03T10:50:10.950799",
+        "subject_count": 8,
+        "total_present": 8,
+        "total_classes": 23,
+        "overall_percentage": 34.78,
+        "subjects_snapshot": [
+          {
+            "subject": "1of4classes",
+            "present": 0,
+            "total": 1
+          },
+          {
+            "subject": "Analysis & Design of Algorithms",
+            "present": 2,
+            "total": 4
+          },
+          {
+            "subject": "Analysis & Design of Algorithms Lab",
+            "present": 0,
+            "total": 1
+          },
+          {
+            "subject": "Biology For Computer Engineers",
+            "present": 0,
+            "total": 1
+          },
+          {
+            "subject": "Database Management Systems",
+            "present": 2,
+            "total": 5
+          },
+          {
+            "subject": "Discrete Mathematical Structures",
+            "present": 3,
+            "total": 6
+          },
+          {
+            "subject": "Microcontrollers",
+            "present": 1,
+            "total": 4
+          },
+          {
+            "subject": "Universal human values course",
+            "present": 0,
+            "total": 1
+          }
+        ]
+      },
+      {
+        "scraped_at": "2026-03-03T16:27:11.937011",
+        "subject_count": 8,
+        "total_present": 9,
+        "total_classes": 25,
+        "overall_percentage": 36.0,
+        "subjects_snapshot": [
+          {
+            "subject": "2of5classes",
+            "present": 0,
+            "total": 2
+          },
+          {
+            "subject": "Analysis & Design of Algorithms",
+            "present": 2,
+            "total": 4
+          },
+          {
+            "subject": "Analysis & Design of Algorithms Lab",
+            "present": 0,
+            "total": 1
+          },
+          {
+            "subject": "Biology For Computer Engineers",
+            "present": 0,
+            "total": 1
+          },
+          {
+            "subject": "Database Management Systems",
+            "present": 2,
+            "total": 5
+          },
+          {
+            "subject": "Discrete Mathematical Structures",
+            "present": 3,
+            "total": 6
+          },
+          {
+            "subject": "Microcontrollers",
+            "present": 2,
+            "total": 5
+          },
+          {
+            "subject": "Universal human values course",
+            "present": 0,
+            "total": 1
+          }
+        ]
+      }
+    ],
+    "81b6565d-fbc1-4457-9bb7-": [
+      {
+        "scraped_at": "2026-03-03T16:28:35.635024",
+        "subject_count": 8,
+        "total_present": 9,
+        "total_classes": 25,
+        "overall_percentage": 36.0,
+        "subjects_snapshot": [
+          {
+            "subject": "2of5classes",
+            "present": 0,
+            "total": 2
+          },
+          {
+            "subject": "Analysis & Design of Algorithms",
+            "present": 2,
+            "total": 4
+          },
+          {
+            "subject": "Analysis & Design of Algorithms Lab",
+            "present": 0,
+            "total": 1
+          },
+          {
+            "subject": "Biology For Computer Engineers",
+            "present": 0,
+            "total": 1
+          },
+          {
+            "subject": "Database Management Systems",
+            "present": 2,
+            "total": 5
+          },
+          {
+            "subject": "Discrete Mathematical Structures",
+            "present": 3,
+            "total": 6
+          },
+          {
+            "subject": "Microcontrollers",
+            "present": 2,
+            "total": 5
+          },
+          {
+            "subject": "Universal human values course",
+            "present": 0,
+            "total": 1
+          }
+        ]
+      },
+      {
+        "scraped_at": "2026-03-04T11:04:37.966111",
+        "subject_count": 8,
+        "total_present": 9,
+        "total_classes": 25,
+        "overall_percentage": 36.0,
+        "subjects_snapshot": [
+          {
+            "subject": "2of5classes",
+            "present": 0,
+            "total": 2
+          },
+          {
+            "subject": "Analysis & Design of Algorithms",
+            "present": 2,
+            "total": 4
+          },
+          {
+            "subject": "Analysis & Design of Algorithms Lab",
+            "present": 0,
+            "total": 1
+          },
+          {
+            "subject": "Biology For Computer Engineers",
+            "present": 0,
+            "total": 1
+          },
+          {
+            "subject": "Database Management Systems",
+            "present": 2,
+            "total": 5
+          },
+          {
+            "subject": "Discrete Mathematical Structures",
+            "present": 3,
+            "total": 6
+          },
+          {
+            "subject": "Microcontrollers",
+            "present": 2,
+            "total": 5
+          },
+          {
+            "subject": "Universal human values course",
+            "present": 0,
+            "total": 1
+          }
+        ]
+      },
+      {
+        "scraped_at": "2026-03-04T11:11:18.117366",
+        "subject_count": 8,
+        "total_present": 9,
+        "total_classes": 25,
+        "overall_percentage": 36.0,
+        "subjects_snapshot": [
+          {
+            "subject": "2of5classes",
+            "present": 0,
+            "total": 2
+          },
+          {
+            "subject": "Analysis & Design of Algorithms",
+            "present": 2,
+            "total": 4
+          },
+          {
+            "subject": "Analysis & Design of Algorithms Lab",
+            "present": 0,
+            "total": 1
+          },
+          {
+            "subject": "Biology For Computer Engineers",
+            "present": 0,
+            "total": 1
+          },
+          {
+            "subject": "Database Management Systems",
+            "present": 2,
+            "total": 5
+          },
+          {
+            "subject": "Discrete Mathematical Structures",
+            "present": 3,
+            "total": 6
+          },
+          {
+            "subject": "Microcontrollers",
+            "present": 2,
+            "total": 5
+          },
+          {
+            "subject": "Universal human values course",
+            "present": 0,
+            "total": 1
+          }
+        ]
+      },
+      {
+        "scraped_at": "2026-03-04T11:15:17.808158",
+        "subject_count": 8,
+        "total_present": 9,
+        "total_classes": 25,
+        "overall_percentage": 36.0,
+        "subjects_snapshot": [
+          {
+            "subject": "2of5classes",
+            "present": 0,
+            "total": 2
+          },
+          {
+            "subject": "Analysis & Design of Algorithms",
+            "present": 2,
+            "total": 4
+          },
+          {
+            "subject": "Analysis & Design of Algorithms Lab",
+            "present": 0,
+            "total": 1
+          },
+          {
+            "subject": "Biology For Computer Engineers",
+            "present": 0,
+            "total": 1
+          },
+          {
+            "subject": "Database Management Systems",
+            "present": 2,
+            "total": 5
+          },
+          {
+            "subject": "Discrete Mathematical Structures",
+            "present": 3,
+            "total": 6
+          },
+          {
+            "subject": "Microcontrollers",
+            "present": 2,
+            "total": 5
+          },
+          {
+            "subject": "Universal human values course",
+            "present": 0,
+            "total": 1
+          }
+        ]
+      },
+      {
+        "scraped_at": "2026-03-05T21:30:44.005717",
+        "subject_count": 8,
+        "total_present": 10,
+        "total_classes": 29,
+        "overall_percentage": 34.48,
+        "subjects_snapshot": [
+          {
+            "subject": "2of6classes",
+            "present": 0,
+            "total": 2
+          },
+          {
+            "subject": "Analysis & Design of Algorithms",
+            "present": 2,
+            "total": 4
+          },
+          {
+            "subject": "Analysis & Design of Algorithms Lab",
+            "present": 1,
+            "total": 2
+          },
+          {
+            "subject": "Biology For Computer Engineers",
+            "present": 0,
+            "total": 1
+          },
+          {
+            "subject": "Database Management Systems",
+            "present": 2,
+            "total": 6
+          },
+          {
+            "subject": "Discrete Mathematical Structures",
+            "present": 3,
+            "total": 7
+          },
+          {
+            "subject": "Microcontrollers",
+            "present": 2,
+            "total": 6
+          },
+          {
+            "subject": "Universal human values course",
+            "present": 0,
+            "total": 1
+          }
+        ]
+      },
+      {
+        "scraped_at": "2026-03-06T09:09:40.323248",
+        "subject_count": 8,
+        "total_present": 10,
+        "total_classes": 29,
+        "overall_percentage": 34.48,
+        "subjects_snapshot": [
+          {
+            "subject": "2of6classes",
+            "present": 0,
+            "total": 2
+          },
+          {
+            "subject": "Analysis & Design of Algorithms",
+            "present": 2,
+            "total": 4
+          },
+          {
+            "subject": "Analysis & Design of Algorithms Lab",
+            "present": 1,
+            "total": 2
+          },
+          {
+            "subject": "Biology For Computer Engineers",
+            "present": 0,
+            "total": 1
+          },
+          {
+            "subject": "Database Management Systems",
+            "present": 2,
+            "total": 6
+          },
+          {
+            "subject": "Discrete Mathematical Structures",
+            "present": 3,
+            "total": 7
+          },
+          {
+            "subject": "Microcontrollers",
+            "present": 2,
+            "total": 6
+          },
+          {
+            "subject": "Universal human values course",
+            "present": 0,
+            "total": 1
+          }
+        ]
+      },
+      {
+        "scraped_at": "2026-03-06T09:38:22.776164",
+        "subject_count": 8,
+        "total_present": 10,
+        "total_classes": 29,
+        "overall_percentage": 34.48,
+        "subjects_snapshot": [
+          {
+            "subject": "2of6classes",
+            "present": 0,
+            "total": 2
+          },
+          {
+            "subject": "Analysis & Design of Algorithms",
+            "present": 2,
+            "total": 4
+          },
+          {
+            "subject": "Analysis & Design of Algorithms Lab",
+            "present": 1,
+            "total": 2
+          },
+          {
+            "subject": "Biology For Computer Engineers",
+            "present": 0,
+            "total": 1
+          },
+          {
+            "subject": "Database Management Systems",
+            "present": 2,
+            "total": 6
+          },
+          {
+            "subject": "Discrete Mathematical Structures",
+            "present": 3,
+            "total": 7
+          },
+          {
+            "subject": "Microcontrollers",
+            "present": 2,
+            "total": 6
+          },
+          {
+            "subject": "Universal human values course",
+            "present": 0,
+            "total": 1
+          }
+        ]
+      },
+      {
+        "scraped_at": "2026-03-06T09:41:06.754311",
+        "subject_count": 8,
+        "total_present": 10,
+        "total_classes": 29,
+        "overall_percentage": 34.48,
+        "subjects_snapshot": [
+          {
+            "subject": "2of6classes",
+            "present": 0,
+            "total": 2
+          },
+          {
+            "subject": "Analysis & Design of Algorithms",
+            "present": 2,
+            "total": 4
+          },
+          {
+            "subject": "Analysis & Design of Algorithms Lab",
+            "present": 1,
+            "total": 2
+          },
+          {
+            "subject": "Biology For Computer Engineers",
+            "present": 0,
+            "total": 1
+          },
+          {
+            "subject": "Database Management Systems",
+            "present": 2,
+            "total": 6
+          },
+          {
+            "subject": "Discrete Mathematical Structures",
+            "present": 3,
+            "total": 7
+          },
+          {
+            "subject": "Microcontrollers",
+            "present": 2,
+            "total": 6
+          },
+          {
+            "subject": "Universal human values course",
+            "present": 0,
+            "total": 1
+          }
+        ]
+      },
+      {
+        "scraped_at": "2026-03-06T09:48:04.793131",
+        "subject_count": 8,
+        "total_present": 11,
+        "total_classes": 30,
+        "overall_percentage": 36.67,
+        "subjects_snapshot": [
+          {
+            "subject": "3of7classes",
+            "present": 0,
+            "total": 2
+          },
+          {
+            "subject": "Analysis & Design of Algorithms",
+            "present": 2,
+            "total": 4
+          },
+          {
+            "subject": "Analysis & Design of Algorithms Lab",
+            "present": 1,
+            "total": 2
+          },
+          {
+            "subject": "Biology For Computer Engineers",
+            "present": 0,
+            "total": 1
+          },
+          {
+            "subject": "Database Management Systems",
+            "present": 2,
+            "total": 6
+          },
+          {
+            "subject": "Discrete Mathematical Structures",
+            "present": 3,
+            "total": 7
+          },
+          {
+            "subject": "Microcontrollers",
+            "present": 3,
+            "total": 7
+          },
+          {
+            "subject": "Universal human values course",
+            "present": 0,
+            "total": 1
+          }
+        ]
+      },
+      {
+        "scraped_at": "2026-03-06T09:54:06.344404",
+        "subject_count": 8,
+        "total_present": 11,
+        "total_classes": 30,
+        "overall_percentage": 36.67,
+        "subjects_snapshot": [
+          {
+            "subject": "3of7classes",
+            "present": 0,
+            "total": 2
+          },
+          {
+            "subject": "Analysis & Design of Algorithms",
+            "present": 2,
+            "total": 4
+          },
+          {
+            "subject": "Analysis & Design of Algorithms Lab",
+            "present": 1,
+            "total": 2
+          },
+          {
+            "subject": "Biology For Computer Engineers",
+            "present": 0,
+            "total": 1
+          },
+          {
+            "subject": "Database Management Systems",
+            "present": 2,
+            "total": 6
+          },
+          {
+            "subject": "Discrete Mathematical Structures",
+            "present": 3,
+            "total": 7
+          },
+          {
+            "subject": "Microcontrollers",
+            "present": 3,
+            "total": 7
+          },
+          {
+            "subject": "Universal human values course",
+            "present": 0,
+            "total": 1
+          }
+        ]
+      },
+      {
+        "scraped_at": "2026-03-06T09:59:57.635345",
+        "subject_count": 8,
+        "total_present": 12,
+        "total_classes": 31,
+        "overall_percentage": 38.71,
+        "subjects_snapshot": [
+          {
+            "subject": "3of7classes",
+            "present": 0,
+            "total": 2
+          },
+          {
+            "subject": "Analysis & Design of Algorithms",
+            "present": 2,
+            "total": 4
+          },
+          {
+            "subject": "Analysis & Design of Algorithms Lab",
+            "present": 1,
+            "total": 2
+          },
+          {
+            "subject": "Biology For Computer Engineers",
+            "present": 1,
+            "total": 2
+          },
+          {
+            "subject": "Database Management Systems",
+            "present": 2,
+            "total": 6
+          },
+          {
+            "subject": "Discrete Mathematical Structures",
+            "present": 3,
+            "total": 7
+          },
+          {
+            "subject": "Microcontrollers",
+            "present": 3,
+            "total": 7
+          },
+          {
+            "subject": "Universal human values course",
+            "present": 0,
+            "total": 1
+          }
+        ]
+      },
+      {
+        "scraped_at": "2026-03-06T10:21:36.326324",
+        "subject_count": 8,
+        "total_present": 12,
+        "total_classes": 31,
+        "overall_percentage": 38.71,
+        "subjects_snapshot": [
+          {
+            "subject": "3of7classes",
+            "present": 0,
+            "total": 2
+          },
+          {
+            "subject": "Analysis & Design of Algorithms",
+            "present": 2,
+            "total": 4
+          },
+          {
+            "subject": "Analysis & Design of Algorithms Lab",
+            "present": 1,
+            "total": 2
+          },
+          {
+            "subject": "Biology For Computer Engineers",
+            "present": 1,
+            "total": 2
+          },
+          {
+            "subject": "Database Management Systems",
+            "present": 2,
+            "total": 6
+          },
+          {
+            "subject": "Discrete Mathematical Structures",
+            "present": 3,
+            "total": 7
+          },
+          {
+            "subject": "Microcontrollers",
+            "present": 3,
+            "total": 7
+          },
+          {
+            "subject": "Universal human values course",
+            "present": 0,
+            "total": 1
+          }
+        ]
+      },
+      {
+        "scraped_at": "2026-03-06T10:24:48.933539",
+        "subject_count": 8,
+        "total_present": 12,
+        "total_classes": 31,
+        "overall_percentage": 38.71,
+        "subjects_snapshot": [
+          {
+            "subject": "3of7classes",
+            "present": 0,
+            "total": 2
+          },
+          {
+            "subject": "Analysis & Design of Algorithms",
+            "present": 2,
+            "total": 4
+          },
+          {
+            "subject": "Analysis & Design of Algorithms Lab",
+            "present": 1,
+            "total": 2
+          },
+          {
+            "subject": "Biology For Computer Engineers",
+            "present": 1,
+            "total": 2
+          },
+          {
+            "subject": "Database Management Systems",
+            "present": 2,
+            "total": 6
+          },
+          {
+            "subject": "Discrete Mathematical Structures",
+            "present": 3,
+            "total": 7
+          },
+          {
+            "subject": "Microcontrollers",
+            "present": 3,
+            "total": 7
+          },
+          {
+            "subject": "Universal human values course",
+            "present": 0,
+            "total": 1
+          }
+        ]
+      },
+      {
+        "scraped_at": "2026-03-06T13:51:48.078438",
+        "subject_count": 8,
+        "total_present": 14,
+        "total_classes": 33,
+        "overall_percentage": 42.42,
+        "subjects_snapshot": [
+          {
+            "subject": "3of7classes",
+            "present": 0,
+            "total": 2
+          },
+          {
+            "subject": "Analysis & Design of Algorithms",
+            "present": 2,
+            "total": 4
+          },
+          {
+            "subject": "Analysis & Design of Algorithms Lab",
+            "present": 1,
+            "total": 2
+          },
+          {
+            "subject": "Biology For Computer Engineers",
+            "present": 1,
+            "total": 2
+          },
+          {
+            "subject": "Database Management Systems",
+            "present": 2,
+            "total": 6
+          },
+          {
+            "subject": "Discrete Mathematical Structures",
+            "present": 4,
+            "total": 8
+          },
+          {
+            "subject": "Microcontrollers",
+            "present": 3,
+            "total": 7
+          },
+          {
+            "subject": "Universal human values course",
+            "present": 1,
+            "total": 2
+          }
+        ]
+      },
+      {
+        "scraped_at": "2026-03-06T14:07:36.847777",
+        "subject_count": 8,
+        "total_present": 14,
+        "total_classes": 33,
+        "overall_percentage": 42.42,
+        "subjects_snapshot": [
+          {
+            "subject": "3of7classes",
+            "present": 0,
+            "total": 2
+          },
+          {
+            "subject": "Analysis & Design of Algorithms",
+            "present": 2,
+            "total": 4
+          },
+          {
+            "subject": "Analysis & Design of Algorithms Lab",
+            "present": 1,
+            "total": 2
+          },
+          {
+            "subject": "Biology For Computer Engineers",
+            "present": 1,
+            "total": 2
+          },
+          {
+            "subject": "Database Management Systems",
+            "present": 2,
+            "total": 6
+          },
+          {
+            "subject": "Discrete Mathematical Structures",
+            "present": 4,
+            "total": 8
+          },
+          {
+            "subject": "Microcontrollers",
+            "present": 3,
+            "total": 7
+          },
+          {
+            "subject": "Universal human values course",
+            "present": 1,
+            "total": 2
+          }
+        ]
+      }
     ]
   },
-  "timetable": {}
+  "timetable": {
+    "c0390dc4-b5df-4a3d-bf5c-": [
+      {
+        "subject": "Discrete Mathematical Structures",
+        "day": 0,
+        "start_time": "1:40",
+        "end_time": "2:35",
+        "raw_text": "Discrete Mathematical Structures (1:40-2:35)",
+        "created_at": "2026-03-03T10:52:08.010299"
+      }
+    ],
+    "81b6565d-fbc1-4457-9bb7-": []
+  }
 }

@@ -24,6 +24,42 @@ class AcharyaERPScraper:
         self.username = username
         self.password = password
         self.driver = None
+    
+    def is_valid_subject_name(self, name):
+        """
+        Validate if a string is a valid subject name.
+        Rejects attendance data formats and invalid patterns.
+        """
+        if not name or len(name) < 3:
+            return False
+        
+        # Reject if it's mostly numbers/special chars (e.g., "123/456", "2of5")
+        alpha_count = sum(1 for c in name if c.isalpha())
+        if alpha_count < len(name) * 0.4:  # Less than 40% alphabetic
+            return False
+        
+        # Reject specific patterns that match attendance data
+        bad_patterns = [
+            r'^\d+\s*of\s*\d+',  # "2 of 5", "2of5"
+            r'^\d+\s*[/]\s*\d+',  # "2/5", "2 / 5"
+            r'^\d+\s*classes$',   # "2 classes"
+            r'^0\.0%$',            # "0.0%"
+            r'^attendance',        # starts with "attendance"
+            r'^present',           # starts with "present"
+            r'^absent',            # starts with "absent"
+            r'^total',             # starts with "total"
+        ]
+        
+        for pattern in bad_patterns:
+            if re.search(pattern, name.strip().lower()):
+                return False
+        
+        # Must contain at least some real subject-like content
+        skip_keywords = ['attendance', 'present', 'absent', 'total', 'view', 'track', 'urgent', 'danger']
+        if any(kw in name.lower() for kw in skip_keywords):
+            return False
+        
+        return True
         
     def setup_driver(self):
         """Setup Chrome driver"""
@@ -435,39 +471,40 @@ class AcharyaERPScraper:
                             break
                     
                     if present is not None and total is not None and total > 0:
-                        # Find subject name - look for heading elements or first meaningful text
+                        # Find subject name - look for heading elements or specific data attributes
                         subject_name = None
                         
-                        # Try to find heading elements within the card
+                        # Try to find heading elements or aria-labels within the card
                         heading_selectors = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 
                                             '[class*="title"]', '[class*="heading"]', 
                                             '[class*="subject"]', '[class*="course-name"]',
-                                            '.card-title', '.card-header']
+                                            '[class*="course-title"]', '[class*="subject-name"]',
+                                            '.card-title', '.card-header', '[data-subject]',
+                                            '[aria-label*="subject"]', '[aria-label*="course"]']
                         
                         for sel in heading_selectors:
                             try:
-                                heading = card.find_element(By.CSS_SELECTOR, sel)
-                                if heading and heading.text.strip():
-                                    potential_name = heading.text.strip().split('\n')[0]
-                                    # Validate it's a subject name
-                                    skip_patterns = ['attendance', 'overview', 'semester', 'present', 
-                                                    'total', 'absent', 'percentage', '%', 'view', 'track']
-                                    if not any(skip.lower() in potential_name.lower() for skip in skip_patterns):
-                                        subject_name = potential_name
+                                elements = card.find_elements(By.CSS_SELECTOR, sel)
+                                if elements:
+                                    for elem in elements:
+                                        if elem and elem.text.strip():
+                                            potential_name = elem.text.strip().split('\n')[0]
+                                            # Validate it's a real subject name
+                                            if self.is_valid_subject_name(potential_name):
+                                                subject_name = potential_name
+                                                break
+                                    if subject_name:
                                         break
                             except:
                                 pass
-                        
                         # Fallback: get first meaningful line from card text
                         if not subject_name:
                             lines = [l.strip() for l in card_text.split('\n') if l.strip()]
                             for line in lines:
-                                if len(line) > 5 and any(c.isalpha() for c in line):
-                                    skip_patterns = ['attendance', 'present', 'absent', 'total', 
-                                                    '%', 'of classes', 'classes', 'view', 'track']
-                                    if not any(skip.lower() in line.lower() for skip in skip_patterns):
-                                        subject_name = line
-                                        break
+                                # Use the validation function to check if this is a real subject name
+                                if self.is_valid_subject_name(line):
+                                    subject_name = line
+                                    break
                         
                         if subject_name and subject_name not in processed:
                             percentage = round((present / total) * 100, 2)
@@ -507,7 +544,14 @@ class AcharyaERPScraper:
                                     if cells:
                                         potential_name = cells[0].text.strip()
                                         if potential_name and len(potential_name) > 3:
-                                            skip = ['sl', 'no', '#', 'subject', 'serial']
+                                            skip = ['sl', 'no', '#', 'subject', 'serial', 'course']
+                                            # Skip if it looks like attendance data (e.g., "2of5classes" or "10/15")
+                                            if re.search(r'\d+\s*(?:of|/)\s*\d+', potential_name, re.IGNORECASE):
+                                                continue
+                                            # Skip if more than 50% are digits
+                                            digit_pct = sum(1 for c in potential_name if c.isdigit()) / len(potential_name) if len(potential_name) > 0 else 0
+                                            if digit_pct > 0.5:
+                                                continue
                                             if not any(s.lower() == potential_name.lower() for s in skip):
                                                 subject_name = potential_name
                                     

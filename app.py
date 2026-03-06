@@ -334,7 +334,7 @@ def get_config():
             'setup_complete': config.get('setup_complete', False),
             'username': session.get('username'),
             'auto_sync_enabled': schedule.get('enabled', False),
-            'auto_sync_interval': schedule.get('interval', 12),
+            'auto_sync_interval': schedule.get('interval', 2),
             'auto_sync_next_run': schedule.get('next_run')
         })
     return jsonify({'setup_complete': False})
@@ -562,7 +562,7 @@ def set_auto_sync_schedule():
         user_id = session['user_id']
         data = request.json
         enabled = data.get('enabled')
-        interval = data.get('interval')  # hours: 6, 12, or 24
+        interval = data.get('interval')  # hours: 1, 2, or 3
 
         if enabled is None:
             return jsonify({'error': 'enabled field is required'}), 400
@@ -576,9 +576,9 @@ def set_auto_sync_schedule():
                     'needs_credentials': True
                 }), 400
 
-            interval = int(interval) if interval else 12
-            if interval not in (6, 12, 24):
-                return jsonify({'error': 'Interval must be 6, 12, or 24 hours'}), 400
+            interval = int(interval) if interval else 2
+            if interval not in (1, 2, 3):
+                return jsonify({'error': 'Interval must be 1, 2, or 3 hours'}), 400
 
             schedule_user_sync(user_id, interval)
             schedule = get_user_schedule(user_id)
@@ -1533,4 +1533,9 @@ if __name__ == '__main__':
     print("Open your browser and go to: http://localhost:5000")
     print("\nPress Ctrl+C to stop the server")
     print("="*70)
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    
+    try:
+        app.run(debug=True, host='0.0.0.0', port=5000)
+    except KeyboardInterrupt:
+        print("\n\nShutting down...")
+        raise
