@@ -370,13 +370,18 @@ def get_all_users_with_auto_sync():
 # ============== ATTENDANCE FUNCTIONS ==============
 
 def save_attendance(user_id, subjects, overall=None):
-    """Save or update attendance data for a user"""
+    """Save or update attendance data for a user.
+    
+    IMPORTANT: This REPLACES all attendance data for the user (clears old entries first).
+    This prevents stale/junk entries from accumulating across scrapes.
+    """
     global _using_fallback
     
     if _using_fallback:
         data = _load_json_db()
-        if user_id not in data['attendance']:
-            data['attendance'][user_id] = {}
+        
+        # CLEAR old attendance data for this user first
+        data['attendance'][user_id] = {}
         
         for subject in subjects:
             name = subject.get('subject')
@@ -420,6 +425,9 @@ def save_attendance(user_id, subjects, overall=None):
     
     db = get_db()
     from bson.objectid import ObjectId
+    
+    # CLEAR old attendance data for this user first
+    db.attendance.delete_many({'user_id': user_id})
     
     for subject in subjects:
         name = subject.get('subject')
@@ -727,6 +735,9 @@ def save_timetable(user_id, timetable_entries):
                 'day': entry.get('day'),
                 'start_time': entry.get('start_time'),
                 'end_time': entry.get('end_time'),
+                'event_type': entry.get('event_type', 'Lecture'),
+                'color_class': entry.get('color_class', 'chart-7'),
+                'order': entry.get('order', 0),
                 'raw_text': entry.get('raw_text', ''),
                 'created_at': datetime.now().isoformat()
             })
@@ -746,6 +757,9 @@ def save_timetable(user_id, timetable_entries):
             'day': entry.get('day'),  # 0=Monday, 6=Sunday
             'start_time': entry.get('start_time'),
             'end_time': entry.get('end_time'),
+            'event_type': entry.get('event_type', 'Lecture'),
+            'color_class': entry.get('color_class', 'chart-7'),
+            'order': entry.get('order', 0),
             'raw_text': entry.get('raw_text', ''),
             'created_at': datetime.now()
         })
@@ -760,19 +774,19 @@ def get_timetable(user_id):
     if _using_fallback:
         data = _load_json_db()
         entries = data['timetable'].get(user_id, [])
-        return sorted(entries, key=lambda x: (x.get('day', 0), x.get('start_time', '')))
+        return sorted(entries, key=lambda x: (x.get('day', 0), x.get('order', 0), x.get('start_time', '')))
     
     db = get_db()
     
     entries = list(db.timetable.find(
         {'user_id': user_id},
         {'_id': 0, 'user_id': 0, 'created_at': 0}
-    ).sort([('day', 1), ('start_time', 1)]))
+    ).sort([('day', 1), ('order', 1), ('start_time', 1)]))
     
     return entries
 
 
-def add_timetable_entry(user_id, subject, day, start_time, end_time):
+def add_timetable_entry(user_id, subject, day, start_time=None, end_time=None, event_type='Lecture', color_class='chart-7', order=0):
     """Add a single timetable entry"""
     global _using_fallback
     
@@ -786,7 +800,10 @@ def add_timetable_entry(user_id, subject, day, start_time, end_time):
             'day': day,
             'start_time': start_time,
             'end_time': end_time,
-            'raw_text': f"{subject} ({start_time}-{end_time})",
+            'event_type': event_type,
+            'color_class': color_class,
+            'order': order,
+            'raw_text': f"{event_type} - {subject}",
             'created_at': datetime.now().isoformat()
         })
         _save_json_db()
@@ -800,14 +817,17 @@ def add_timetable_entry(user_id, subject, day, start_time, end_time):
         'day': day,
         'start_time': start_time,
         'end_time': end_time,
-        'raw_text': f"{subject} ({start_time}-{end_time})",
+        'event_type': event_type,
+        'color_class': color_class,
+        'order': order,
+        'raw_text': f"{event_type} - {subject}",
         'created_at': datetime.now()
     })
     
     return {'success': True}
 
 
-def delete_timetable_entry(user_id, subject, day, start_time):
+def delete_timetable_entry(user_id, subject, day, start_time=None, order=None):
     """Delete a timetable entry"""
     global _using_fallback
     
@@ -816,7 +836,8 @@ def delete_timetable_entry(user_id, subject, day, start_time):
         if user_id in data['timetable']:
             data['timetable'][user_id] = [
                 e for e in data['timetable'][user_id]
-                if not (e['subject'] == subject and e['day'] == day and e['start_time'] == start_time)
+                if not (e['subject'] == subject and e['day'] == day and
+                        (order is None or e.get('order') == order))
             ]
             _save_json_db()
             return True
@@ -824,12 +845,15 @@ def delete_timetable_entry(user_id, subject, day, start_time):
     
     db = get_db()
     
-    result = db.timetable.delete_one({
+    query = {
         'user_id': user_id,
         'subject': subject,
-        'day': day,
-        'start_time': start_time
-    })
+        'day': day
+    }
+    if order is not None:
+        query['order'] = order
+    
+    result = db.timetable.delete_one(query)
     
     return result.deleted_count > 0
 

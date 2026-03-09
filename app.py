@@ -138,18 +138,8 @@ def run_scraper_background(user_id, username, password):
             if timetable_data and len(timetable_data) > 0:
                 status['progress'] = f'Saving {len(timetable_data)} timetable entries...'
                 try:
-                    # Save timetable entries to database
-                    for entry in timetable_data:
-                        if entry.get('subject') and entry.get('day') is not None:
-                            start_time = entry.get('start_time') or '09:00'
-                            end_time = entry.get('end_time') or '10:00'
-                            db.add_timetable_entry(
-                                user_id,
-                                entry['subject'],
-                                entry['day'],
-                                start_time,
-                                end_time
-                            )
+                    # Save all timetable entries at once (replaces old data)
+                    db.save_timetable(user_id, timetable_data)
                     status['progress'] = 'Timetable saved!'
                 except Exception as e:
                     print(f"⚠ Warning: Could not save some timetable entries: {e}")
@@ -443,9 +433,9 @@ def get_latest_data():
                 'total_classes': total_classes_all
             },
             'erp_overall': {
-                'present': erp_overall.get('present') if erp_overall else total_present_all,
-                'total': erp_overall.get('total') if erp_overall else total_classes_all,
-                'percentage': erp_overall.get('percentage') if erp_overall else round(overall_attendance, 2)
+                'present': erp_overall.get('present') if erp_overall and erp_overall.get('present') is not None else total_present_all,
+                'total': erp_overall.get('total') if erp_overall and erp_overall.get('total') is not None else total_classes_all,
+                'percentage': erp_overall.get('percentage') if erp_overall and erp_overall.get('percentage') is not None else round(overall_attendance, 2)
             },
             'semester_info': semester_info
         })
@@ -744,6 +734,9 @@ def get_timetable_route():
                 'day_name': ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'][entry.get('day', 0)] if entry.get('day') is not None else 'Unknown',
                 'start_time': entry.get('start_time'),
                 'end_time': entry.get('end_time'),
+                'event_type': entry.get('event_type', 'Lecture'),
+                'color_class': entry.get('color_class', 'chart-7'),
+                'order': entry.get('order', 0),
                 'can_bunk': can_bunk,
                 'current_pct': current_pct,
                 'classes_to_spare': classes_to_spare
@@ -809,6 +802,9 @@ def get_today_schedule():
                     'subject': subject_name,
                     'start_time': class_entry.get('start_time'),
                     'end_time': class_entry.get('end_time'),
+                    'event_type': class_entry.get('event_type', 'Lecture'),
+                    'color_class': class_entry.get('color_class', 'chart-7'),
+                    'order': class_entry.get('order', 0),
                     'current_percentage': bunk_info['current_percentage'],
                     'projected_percentage': bunk_info['projected_percentage'],
                     'can_bunk': bunk_info['can_bunk'],
@@ -824,6 +820,9 @@ def get_today_schedule():
                     'subject': subject_name,
                     'start_time': class_entry.get('start_time'),
                     'end_time': class_entry.get('end_time'),
+                    'event_type': class_entry.get('event_type', 'Lecture'),
+                    'color_class': class_entry.get('color_class', 'chart-7'),
+                    'order': class_entry.get('order', 0),
                     'current_percentage': 0,
                     'projected_percentage': 0,
                     'can_bunk': False,
@@ -834,8 +833,8 @@ def get_today_schedule():
                     'total': 0
                 })
         
-        # Sort by start time
-        today_schedule.sort(key=lambda x: x['start_time'] or '00:00')
+        # Sort by order (position in day), fallback to start_time
+        today_schedule.sort(key=lambda x: (x.get('order', 0), x.get('start_time') or '00:00'))
         
         # Get summary stats for today
         safe_count = sum(1 for c in today_schedule if c['can_bunk'])
@@ -876,13 +875,17 @@ def add_timetable_entry_route():
         
         subject = data.get('subject', '').strip()
         day = data.get('day')  # 0-6
-        start_time = data.get('start_time', '').strip()
-        end_time = data.get('end_time', '').strip()
+        start_time = data.get('start_time', '').strip() or None
+        end_time = data.get('end_time', '').strip() or None
+        event_type = data.get('event_type', 'Lecture')
+        color_class = data.get('color_class', 'chart-7')
+        order = data.get('order', 0)
         
-        if not subject or day is None or not start_time or not end_time:
-            return jsonify({'error': 'All fields required: subject, day, start_time, end_time'}), 400
+        if not subject or day is None:
+            return jsonify({'error': 'Subject and day are required'}), 400
         
-        result = db.add_timetable_entry(user_id, subject, day, start_time, end_time)
+        result = db.add_timetable_entry(user_id, subject, day, start_time, end_time,
+                                         event_type=event_type, color_class=color_class, order=order)
         return jsonify(result)
         
     except Exception as e:
@@ -899,12 +902,12 @@ def delete_timetable_entry_route():
         
         subject = data.get('subject')
         day = data.get('day')
-        start_time = data.get('start_time')
+        order = data.get('order')
         
-        if not all([subject, day is not None, start_time]):
-            return jsonify({'error': 'Subject, day, and start_time required'}), 400
+        if not subject or day is None:
+            return jsonify({'error': 'Subject and day required'}), 400
         
-        deleted = db.delete_timetable_entry(user_id, subject, day, start_time)
+        deleted = db.delete_timetable_entry(user_id, subject, day, order=order)
         
         if deleted:
             return jsonify({'success': True, 'message': 'Entry deleted'})

@@ -28,34 +28,50 @@ class AcharyaERPScraper:
     def is_valid_subject_name(self, name):
         """
         Validate if a string is a valid subject name.
-        Rejects attendance data formats and invalid patterns.
+        Rejects attendance data formats, course codes, and invalid patterns.
         """
-        if not name or len(name) < 3:
+        if not name or len(name.strip()) < 3:
             return False
+        
+        name = name.strip()
         
         # Reject if it's mostly numbers/special chars (e.g., "123/456", "2of5")
         alpha_count = sum(1 for c in name if c.isalpha())
-        if alpha_count < len(name) * 0.4:  # Less than 40% alphabetic
+        if alpha_count < len(name) * 0.3:  # Less than 30% alphabetic
             return False
         
         # Reject specific patterns that match attendance data
         bad_patterns = [
-            r'^\d+\s*of\s*\d+',  # "2 of 5", "2of5"
-            r'^\d+\s*[/]\s*\d+',  # "2/5", "2 / 5"
-            r'^\d+\s*classes$',   # "2 classes"
-            r'^0\.0%$',            # "0.0%"
-            r'^attendance',        # starts with "attendance"
-            r'^present',           # starts with "present"
-            r'^absent',            # starts with "absent"
-            r'^total',             # starts with "total"
+            r'\d+\s*of\s*\d+',             # "2 of 5", "2of5", "2of6classes"
+            r'^\d+\s*[/]\s*\d+',            # "2/5", "2 / 5"
+            r'^\d+\s*classes',              # "2 classes", "2classes"
+            r'^\d+\.?\d*\s*%',              # "0.0%", "75%", "42.86%"
+            r'^[A-Z]{1,5}\d{3,4}[A-Z]?$',  # Course codes: BCS401, BCSL404, BBOC407, BCS405A, BCS456C
+            r'^[A-Z]{2,6}\d{2,4}$',         # More course codes: UH408, etc.
         ]
         
         for pattern in bad_patterns:
-            if re.search(pattern, name.strip().lower()):
+            if re.search(pattern, name.strip(), re.IGNORECASE):
                 return False
         
-        # Must contain at least some real subject-like content
-        skip_keywords = ['attendance', 'present', 'absent', 'total', 'view', 'track', 'urgent', 'danger']
+        # Must NOT be a pure course-code-like string (all caps + digits)
+        if re.match(r'^[A-Z0-9]+$', name) and any(c.isdigit() for c in name):
+            return False
+        
+        # Reject short all-caps abbreviations (e.g., UHV, ADA, DBMS, DMS, ADAL)
+        # Real subject names are multi-word or longer; these are just short codes
+        if re.match(r'^[A-Z]{2,6}$', name):
+            return False
+        
+        # Skip keywords that indicate UI elements, not subjects
+        skip_keywords = [
+            'attendance', 'present', 'absent', 'total', 'view', 'track', 
+            'urgent', 'danger', 'overview', 'semester', 'dashboard',
+            'calendar', 'mentorship', 'exam', 'fee payment', 'lms',
+            'feedback', 'beta', 'acharya erp', 'toggle', 'offline',
+            'records', 'percentage', 'click', 'show more', 'see all',
+            'view details', 'my courses', 'classes attended',
+        ]
         if any(kw in name.lower() for kw in skip_keywords):
             return False
         
@@ -142,27 +158,79 @@ class AcharyaERPScraper:
             return False
     
     def navigate_to_attendance(self):
-        """Navigate to attendance page"""
+        """Navigate to a page with attendance data.
+        
+        The Acharya ERP dashboard already shows attendance cards after login.
+        We first check if the dashboard has attendance data visible.
+        If not, we try the /attendance page with proper wait for SPA rendering.
+        """
         try:
+            # Strategy 1: Check if dashboard already has attendance data
+            # (After login, we're already on the dashboard)
+            current_url = self.driver.current_url
+            print(f"  Current URL: {current_url}")
+            
+            if "dashboard" in current_url.lower():
+                print("  Already on dashboard, checking for attendance data...")
+                # Wait for attendance cards to render on dashboard
+                try:
+                    WebDriverWait(self.driver, 15).until(
+                        lambda d: re.search(
+                            r'\d+\s*of\s*\d+\s*class',
+                            d.find_element(By.TAG_NAME, "body").text, re.IGNORECASE
+                        )
+                    )
+                    print("✓ Dashboard has attendance data - staying here")
+                    return True
+                except Exception as e:
+                    print(f"  Dashboard doesn't have attendance data yet: {e}")
+            
+            # Strategy 2: Navigate to /attendance and wait for SPA to render
+            print("  Trying /attendance page...")
             attendance_url = f"{self.erp_url}/attendance"
             self.driver.get(attendance_url)
-            time.sleep(3)
             
-            if "attendance" in self.driver.current_url.lower():
-                print("✓ On attendance page")
+            # Wait up to 30 seconds for the SPA to render attendance content
+            try:
+                WebDriverWait(self.driver, 30).until(
+                    lambda d: re.search(
+                        r'\d+\s*of\s*\d+\s*class',
+                        d.find_element(By.TAG_NAME, "body").text, re.IGNORECASE
+                    )
+                )
+                print("✓ Attendance page loaded with data")
+                return True
+            except:
+                print("  /attendance SPA didn't render content in time")
+            
+            # Strategy 3: Go back to dashboard and try harder
+            print("  Going back to dashboard...")
+            self.driver.get(f"{self.erp_url}/dashboard")
+            time.sleep(5)
+            
+            # Scroll to trigger any lazy loading
+            self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+            time.sleep(2)
+            self.driver.execute_script("window.scrollTo(0, 0);")
+            time.sleep(2)
+            
+            body_text = self.driver.find_element(By.TAG_NAME, "body").text
+            if 'classes' in body_text.lower():
+                print("✓ Dashboard has attendance data after scrolling")
                 return True
             
+            # Strategy 4: Try clicking Attendance link in sidebar/nav
             try:
                 attendance_link = self.driver.find_element(By.PARTIAL_LINK_TEXT, "Attendance")
                 attendance_link.click()
-                time.sleep(3)
-                print("✓ Navigated to attendance page")
+                time.sleep(5)
+                print("✓ Navigated via Attendance link")
                 return True
             except:
-                print("⚠ Couldn't auto-navigate. Please click on Attendance manually.")
-                print("You have 15 seconds...")
-                time.sleep(15)
-                return True
+                pass
+            
+            print("⚠ Could not find attendance data on any page, proceeding anyway...")
+            return True
                 
         except Exception as e:
             print(f"✗ Navigation failed: {e}")
@@ -173,7 +241,7 @@ class AcharyaERPScraper:
         try:
             calendar_url = f"{self.erp_url}/calendar"
             self.driver.get(calendar_url)
-            time.sleep(3)
+            time.sleep(5)
             
             if "calendar" in self.driver.current_url.lower():
                 print("✓ On calendar page")
@@ -182,33 +250,64 @@ class AcharyaERPScraper:
             try:
                 calendar_link = self.driver.find_element(By.PARTIAL_LINK_TEXT, "Calendar")
                 calendar_link.click()
-                time.sleep(3)
+                time.sleep(5)
                 print("✓ Navigated to calendar page")
                 return True
             except:
                 try:
                     timetable_link = self.driver.find_element(By.PARTIAL_LINK_TEXT, "Timetable")
                     timetable_link.click()
-                    time.sleep(3)
+                    time.sleep(5)
                     print("✓ Navigated to timetable page")
                     return True
                 except:
-                    print("⚠ Couldn't auto-navigate to calendar. Please navigate manually.")
-                    print("You have 15 seconds...")
-                    time.sleep(15)
-                    return True
+                    print("⚠ Couldn't auto-navigate to calendar.")
+                    return False
                 
         except Exception as e:
             print(f"✗ Calendar navigation failed: {e}")
             return False
     
     def extract_timetable_data(self):
-        """Extract timetable/schedule data from calendar page"""
+        """Extract weekly timetable from Acharya ERP calendar page.
+        
+        The ERP calendar is a 7-column grid (Sun-Sat) with events inside
+        each date cell. Events use color-coded CSS classes:
+          - chart-7: Lectures
+          - chart-9: Labs
+          - chart-10: Holidays/special days
+        
+        Event text format: "Lecture - Subject Name" or "Lab - Subject Name"
+        Attendance: P (present) or A (absent) badges
+        
+        We extract all events, map dates to day-of-week, and build a
+        recurring weekly schedule by finding the most common pattern.
+        
+        Returns a list of timetable entries with:
+          subject, event_type (Lecture/Lab/Holiday), day (0=Mon..6=Sun),
+          color_class, attendance records, and order within the day.
+        """
+        from datetime import datetime as dt
+        from collections import defaultdict
+        
         timetable = []
         
         try:
-            print("Extracting timetable data...")
+            print("Extracting timetable from calendar...")
             time.sleep(3)
+            
+            # Click "Show more" / expand hidden events first
+            try:
+                more_buttons = self.driver.find_elements(By.XPATH, "//*[contains(text(), 'more...') or contains(text(), '+')]")
+                for btn in more_buttons:
+                    try:
+                        if btn.is_displayed() and ('more' in btn.text.lower() or btn.text.strip().startswith('+')):
+                            btn.click()
+                            time.sleep(1)
+                    except:
+                        continue
+            except:
+                pass
             
             # Scroll to load all content
             self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
@@ -216,135 +315,248 @@ class AcharyaERPScraper:
             self.driver.execute_script("window.scrollTo(0, 0);")
             time.sleep(1)
             
-            # Get page HTML for analysis
-            page_source = self.driver.page_source
+            # Save debug HTML
+            try:
+                with open('last_scrape_debug.html', 'w', encoding='utf-8') as f:
+                    f.write(self.driver.page_source)
+            except:
+                pass
             
-            # Common selectors for calendar/timetable events
-            event_selectors = [
-                ".fc-event",  # FullCalendar events
-                ".calendar-event",
-                "[class*='event']",
-                ".fc-daygrid-event",
-                ".fc-timegrid-event",
-                ".schedule-item",
-                "[class*='schedule']",
-                ".timetable-entry",
-                "[class*='timetable']",
-                ".class-slot",
-                "td[class*='period']",
-            ]
+            body_text = self.driver.find_element(By.TAG_NAME, "body").text
+            try:
+                with open('last_scrape_text.txt', 'w', encoding='utf-8') as f:
+                    f.write(body_text)
+            except:
+                pass
             
-            events = []
-            for selector in event_selectors:
+            # ==========================================
+            # Determine current month/year from page
+            # ==========================================
+            month_year = None
+            try:
+                # Look for "March 2026" type text
+                month_match = re.search(r'(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{4})', body_text)
+                if month_match:
+                    month_name = month_match.group(1)
+                    year = int(month_match.group(2))
+                    month_names = ['January', 'February', 'March', 'April', 'May', 'June',
+                                   'July', 'August', 'September', 'October', 'November', 'December']
+                    month_num = month_names.index(month_name) + 1
+                    month_year = (year, month_num)
+                    print(f"  Calendar month: {month_name} {year}")
+            except:
+                pass
+            
+            if not month_year:
+                now = dt.now()
+                month_year = (now.year, now.month)
+                print(f"  Using current month: {month_year}")
+            
+            # ==========================================
+            # Parse the calendar grid using Selenium
+            # ==========================================
+            # The grid is: div.grid.grid-cols-7 containing day cells
+            # Header row: Sun, Mon, Tue, Wed, Thu, Fri, Sat
+            # ERP uses Sun=0 column layout
+            
+            # Find all day cells in the calendar grid
+            # Each cell has a date number span and event buttons
+            day_cells = self.driver.find_elements(By.CSS_SELECTOR, "div.grid.grid-cols-7 > div")
+            
+            if not day_cells:
+                # Fallback: try broader selector
+                day_cells = self.driver.find_elements(By.CSS_SELECTOR, "[class*='grid-cols-7'] > div")
+            
+            print(f"  Found {len(day_cells)} grid cells")
+            
+            # Skip header row (first 7 cells are Sun/Mon/Tue/Wed/Thu/Fri/Sat)
+            # Identify header cells by looking for day name text
+            header_count = 0
+            for cell in day_cells[:14]:
+                txt = cell.text.strip().lower()
+                if txt in ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat']:
+                    header_count += 1
+            
+            if header_count >= 5:
+                # First 7 are headers
+                data_cells = day_cells[7:]
+            else:
+                data_cells = day_cells
+            
+            # Parse each date cell
+            # Column index: 0=Sun, 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat
+            # We convert to: 0=Mon, 1=Tue, ..., 5=Sat, 6=Sun
+            
+            erp_to_our_day = {0: 6, 1: 0, 2: 1, 3: 2, 4: 3, 5: 4, 6: 5}  # Sun→6, Mon→0, etc.
+            
+            # Track events per day-of-week for building weekly pattern
+            weekly_events = defaultdict(list)  # day_num -> list of (order, event_info)
+            all_events = []
+            
+            for cell_idx, cell in enumerate(data_cells):
+                col = cell_idx % 7  # 0=Sun column
+                our_day = erp_to_our_day[col]
+                
                 try:
-                    found = self.driver.find_elements(By.CSS_SELECTOR, selector)
-                    if found:
-                        events.extend(found)
-                        print(f"  Found {len(found)} elements with selector: {selector}")
-                except:
-                    pass
-            
-            # Try to extract structured data from events
-            day_map = {
-                'monday': 0, 'mon': 0,
-                'tuesday': 1, 'tue': 1,
-                'wednesday': 2, 'wed': 2,
-                'thursday': 3, 'thu': 3,
-                'friday': 4, 'fri': 4,
-                'saturday': 5, 'sat': 5,
-                'sunday': 6, 'sun': 6
-            }
-            
-            processed_events = set()
-            
-            for event in events:
-                try:
-                    event_text = event.text.strip()
-                    if not event_text or event_text in processed_events:
-                        continue
-                    processed_events.add(event_text)
-                    
-                    # Try to extract event details
-                    # Look for time patterns like "09:00 - 10:00" or "9:00 AM"
-                    time_pattern = re.compile(r'(\d{1,2}:\d{2})\s*[-–to]+\s*(\d{1,2}:\d{2})', re.IGNORECASE)
-                    time_match = time_pattern.search(event_text)
-                    
-                    # Try to get day from parent elements or position
-                    day = None
-                    parent = event.find_element(By.XPATH, "..")
-                    parent_classes = parent.get_attribute("class") or ""
-                    
-                    for day_name, day_num in day_map.items():
-                        if day_name in parent_classes.lower() or day_name in event_text.lower():
-                            day = day_num
+                    # Get date number from the cell
+                    date_spans = cell.find_elements(By.CSS_SELECTOR, "span")
+                    date_num = None
+                    for span in date_spans[:3]:
+                        txt = span.text.strip()
+                        if txt.isdigit() and 1 <= int(txt) <= 31:
+                            # Check if this is a dimmed/opacity date (prev/next month)
+                            span_classes = span.get_attribute("class") or ""
+                            parent_classes = cell.get_attribute("class") or ""
+                            if "opacity-20" in span_classes or "opacity-50" in parent_classes:
+                                date_num = None  # Skip dates from other months
+                            else:
+                                date_num = int(txt)
                             break
                     
-                    # Extract subject name (usually the main text)
-                    subject = event_text.split('\n')[0].strip()
+                    if date_num is None:
+                        continue
                     
-                    if time_match:
-                        start_time = time_match.group(1)
-                        end_time = time_match.group(2)
-                        
-                        timetable.append({
-                            'subject': subject,
-                            'day': day,
-                            'start_time': start_time,
-                            'end_time': end_time,
-                            'raw_text': event_text
-                        })
-                        print(f"  ✓ Found: {subject} at {start_time}-{end_time}")
-                    else:
-                        # Store even without time for manual processing
-                        timetable.append({
-                            'subject': subject,
-                            'day': day,
-                            'start_time': None,
-                            'end_time': None,
-                            'raw_text': event_text
-                        })
-                        
+                    # Find all event buttons in this cell
+                    event_buttons = cell.find_elements(By.CSS_SELECTOR, "[role='button'], [data-slot='dialog-trigger']")
+                    
+                    for order, btn in enumerate(event_buttons):
+                        try:
+                            btn_classes = btn.get_attribute("class") or ""
+                            btn_text = btn.text.strip()
+                            
+                            if not btn_text or len(btn_text) < 3:
+                                continue
+                            
+                            # Extract event text from span.font-semibold
+                            event_spans = btn.find_elements(By.CSS_SELECTOR, "span.font-semibold")
+                            event_text = ""
+                            for es in event_spans:
+                                t = es.text.strip()
+                                if t and len(t) > 2:
+                                    event_text = t
+                                    break
+                            
+                            if not event_text:
+                                event_text = btn_text.split('\n')[0].strip()
+                            
+                            # Determine color class
+                            color_class = 'chart-7'  # default (lecture)
+                            if 'chart-9' in btn_classes:
+                                color_class = 'chart-9'  # lab
+                            elif 'chart-10' in btn_classes:
+                                color_class = 'chart-10'  # holiday
+                            elif 'chart-8' in btn_classes:
+                                color_class = 'chart-8'
+                            
+                            # Determine event type and subject name
+                            event_type = 'Lecture'
+                            subject = event_text
+                            
+                            if event_text.startswith('Lecture - '):
+                                event_type = 'Lecture'
+                                subject = event_text[len('Lecture - '):].strip()
+                            elif event_text.startswith('Lab - '):
+                                event_type = 'Lab'
+                                subject = event_text[len('Lab - '):].strip()
+                            elif 'Holiday' in event_text or 'DH' in event_text:
+                                event_type = 'Holiday'
+                                subject = event_text
+                            elif event_text.startswith('Tutorial - '):
+                                event_type = 'Tutorial'
+                                subject = event_text[len('Tutorial - '):].strip()
+                            
+                            # Check attendance status (P/A badge)
+                            attendance_status = None
+                            try:
+                                success_badge = btn.find_elements(By.CSS_SELECTOR, ".bg-success\\/20 span, [class*='text-success']")
+                                destruct_badge = btn.find_elements(By.CSS_SELECTOR, ".bg-destructive\\/20 span, [class*='text-destructive']")
+                                if success_badge:
+                                    attendance_status = 'P'
+                                elif destruct_badge:
+                                    attendance_status = 'A'
+                            except:
+                                # Fallback: check text
+                                if btn_text.endswith(' P') or '\nP' in btn_text:
+                                    attendance_status = 'P'
+                                elif btn_text.endswith(' A') or '\nA' in btn_text:
+                                    attendance_status = 'A'
+                            
+                            event_info = {
+                                'subject': subject,
+                                'event_type': event_type,
+                                'color_class': color_class,
+                                'date': date_num,
+                                'day': our_day,
+                                'order': order,
+                                'attendance': attendance_status,
+                                'raw_text': event_text
+                            }
+                            
+                            all_events.append(event_info)
+                            
+                            # Add to weekly pattern (skip holidays)
+                            if event_type != 'Holiday':
+                                weekly_events[our_day].append(event_info)
+                            
+                        except Exception as e:
+                            continue
+                
                 except Exception as e:
                     continue
             
-            # Alternative: Try to find a table-based timetable
-            if not timetable:
-                print("  Trying table-based extraction...")
-                tables = self.driver.find_elements(By.TAG_NAME, "table")
-                
-                for table in tables:
-                    rows = table.find_elements(By.TAG_NAME, "tr")
-                    header_cells = []
-                    
-                    for row_idx, row in enumerate(rows):
-                        cells = row.find_elements(By.CSS_SELECTOR, "td, th")
-                        
-                        # First row might be header with days
-                        if row_idx == 0:
-                            header_cells = [cell.text.strip().lower() for cell in cells]
-                            continue
-                        
-                        # Process data rows
-                        for col_idx, cell in enumerate(cells):
-                            cell_text = cell.text.strip()
-                            if cell_text and len(cell_text) > 2:
-                                # Determine day from column header
-                                day = None
-                                if col_idx < len(header_cells):
-                                    for day_name, day_num in day_map.items():
-                                        if day_name in header_cells[col_idx]:
-                                            day = day_num
-                                            break
-                                
-                                timetable.append({
-                                    'subject': cell_text.split('\n')[0],
-                                    'day': day,
-                                    'start_time': None,
-                                    'end_time': None,
-                                    'raw_text': cell_text
-                                })
+            print(f"  Extracted {len(all_events)} total calendar events")
             
-            print(f"\n✓ Extracted {len(timetable)} timetable entries")
+            # ==========================================
+            # Build recurring weekly schedule
+            # ==========================================
+            # For each day of week, find the most common set of classes
+            # (to handle weeks where some classes are cancelled due to holidays)
+            
+            from collections import Counter
+            
+            weekly_schedule = {}
+            
+            for day_num in range(7):
+                day_events = weekly_events.get(day_num, [])
+                if not day_events:
+                    continue
+                
+                # Group events by date to see what classes happen per day
+                by_date = defaultdict(list)
+                for ev in day_events:
+                    key = f"{ev['event_type']} - {ev['subject']}"
+                    by_date[ev['date']].append(ev)
+                
+                # Find the most populated date (most classes = normal schedule)
+                best_date = max(by_date.keys(), key=lambda d: len(by_date[d]))
+                schedule_for_day = by_date[best_date]
+                
+                # Sort by order (position on the page = time order)
+                schedule_for_day.sort(key=lambda x: x['order'])
+                
+                weekly_schedule[day_num] = schedule_for_day
+            
+            # Build final timetable entries
+            for day_num in sorted(weekly_schedule.keys()):
+                events_for_day = weekly_schedule[day_num]
+                for order, ev in enumerate(events_for_day):
+                    timetable.append({
+                        'subject': ev['subject'],
+                        'event_type': ev['event_type'],
+                        'day': day_num,
+                        'order': order,
+                        'color_class': ev['color_class'],
+                        'start_time': None,  # ERP calendar doesn't show times
+                        'end_time': None,
+                        'raw_text': ev['raw_text']
+                    })
+            
+            print(f"\n✓ Built weekly schedule with {len(timetable)} recurring classes:")
+            day_names = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+            for entry in timetable:
+                day_name = day_names[entry['day']] if entry['day'] < 7 else '?'
+                print(f"  {day_name} #{entry['order']+1}: [{entry['event_type']}] {entry['subject']}")
+            
             return timetable
             
         except Exception as e:
@@ -354,14 +566,41 @@ class AcharyaERPScraper:
             return []
     
     def extract_attendance_data(self):
-        """Extract attendance data from Acharya ERP cards - improved accuracy"""
+        """Extract attendance data from Acharya ERP attendance page.
+        
+        The Acharya ERP dashboard shows attendance in card format:
+            SubjectName
+            CourseCode (e.g. BCS401)
+            ShortName (e.g. ADA)
+            X          <-- present count (separate line)
+            of         <-- separate line  
+            Y          <-- total count (separate line)
+            classes    <-- separate line
+            Z%         <-- percentage
+        
+        There is also a "Show more (N more)" button that hides some subjects.
+        
+        Returns dict with 'subjects' list and 'overall' attendance.
+        """
         attendance_data = []
         processed = set()
-        overall_attendance = None  # Will store {present, total, percentage} from ERP
+        overall_attendance = None
         
         try:
             print("Waiting for page to fully load...")
-            time.sleep(5)
+            # Wait for attendance content to be present (up to 20s)
+            try:
+                WebDriverWait(self.driver, 20).until(
+                    lambda d: re.search(
+                        r'\d+\s*of\s*\d+\s*class',
+                        d.find_element(By.TAG_NAME, "body").text, re.IGNORECASE
+                    )
+                )
+                print("  ✓ Attendance content detected on page")
+            except:
+                print("  ⚠ Timed out waiting for attendance content, proceeding anyway...")
+            
+            time.sleep(2)
             
             # Scroll to load all content
             self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
@@ -369,251 +608,258 @@ class AcharyaERPScraper:
             self.driver.execute_script("window.scrollTo(0, 0);")
             time.sleep(1)
             
-            # First, try to extract overall attendance from ERP
-            print("Looking for overall attendance...")
-            body_text = self.driver.find_element(By.TAG_NAME, "body").text
-            
-            # Patterns to find overall attendance (adjust based on ERP format)
-            overall_patterns = [
-                re.compile(r'overall\s*(?:attendance)?[:\s]*(\d+)\s*[/of]\s*(\d+)', re.IGNORECASE),
-                re.compile(r'total\s*(?:attendance)?[:\s]*(\d+)\s*[/of]\s*(\d+)', re.IGNORECASE),
-                re.compile(r'aggregate\s*(?:attendance)?[:\s]*(\d+)\s*[/of]\s*(\d+)', re.IGNORECASE),
-                re.compile(r'overall[:\s]*(\d+(?:\.\d+)?)\s*%', re.IGNORECASE),
-                re.compile(r'total\s+attendance[:\s]*(\d+(?:\.\d+)?)\s*%', re.IGNORECASE),
-                re.compile(r'aggregate[:\s]*(\d+(?:\.\d+)?)\s*%', re.IGNORECASE),
-                re.compile(r'present\s*classes?[:\s]*(\d+).*?total\s*classes?[:\s]*(\d+)', re.IGNORECASE | re.DOTALL),
-            ]
-            
-            for pattern in overall_patterns:
-                match = pattern.search(body_text)
-                if match:
-                    groups = match.groups()
-                    if len(groups) == 2:
-                        # It's present/total format
-                        present = int(groups[0])
-                        total = int(groups[1])
-                        if total > 0:
-                            percentage = round((present / total) * 100, 2)
-                            overall_attendance = {
-                                'present': present,
-                                'total': total,
-                                'percentage': percentage
-                            }
-                            print(f"  ✓ Found overall attendance: {present}/{total} ({percentage}%)")
+            # ==========================================
+            # Click "Show more" to reveal all subjects
+            # ==========================================
+            print("Looking for 'Show more' button...")
+            try:
+                show_more_selectors = [
+                    "//button[contains(text(), 'Show more')]",
+                    "//a[contains(text(), 'Show more')]",
+                    "//span[contains(text(), 'Show more')]",
+                    "//*[contains(text(), 'Show more')]",
+                    "//button[contains(text(), 'show more')]",
+                    "//button[contains(text(), 'View All')]",
+                    "//a[contains(text(), 'View All')]",
+                    "//*[contains(text(), 'See all')]",
+                ]
+                clicked = False
+                for xpath in show_more_selectors:
+                    try:
+                        elements = self.driver.find_elements(By.XPATH, xpath)
+                        for elem in elements:
+                            if elem.is_displayed():
+                                elem.click()
+                                clicked = True
+                                print(f"  ✓ Clicked 'Show more' button")
+                                time.sleep(3)
+                                break
+                        if clicked:
                             break
-                    elif len(groups) == 1:
-                        # It's just a percentage
-                        percentage = float(groups[0])
-                        overall_attendance = {
-                            'present': None,
-                            'total': None,
-                            'percentage': percentage
-                        }
-                        print(f"  ✓ Found overall attendance percentage: {percentage}%")
+                    except:
+                        continue
+                
+                if not clicked:
+                    # Try CSS selectors too
+                    css_selectors = [
+                        "[class*='show-more']",
+                        "[class*='showMore']",
+                        "[class*='view-all']",
+                        "[class*='viewAll']",
+                        "button.MuiButton-root",
+                    ]
+                    for sel in css_selectors:
+                        try:
+                            buttons = self.driver.find_elements(By.CSS_SELECTOR, sel)
+                            for btn in buttons:
+                                btn_text = btn.text.strip().lower()
+                                if 'show more' in btn_text or 'view all' in btn_text or 'see all' in btn_text:
+                                    btn.click()
+                                    clicked = True
+                                    print(f"  ✓ Clicked expand button: '{btn.text.strip()}'")
+                                    time.sleep(3)
+                                    break
+                            if clicked:
+                                break
+                        except:
+                            continue
+                
+                if not clicked:
+                    print("  ⚠ No 'Show more' button found (may not exist or all subjects visible)")
+            except Exception as e:
+                print(f"  ⚠ Show more handling: {e}")
+            
+            # Scroll again after expanding
+            self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+            time.sleep(1)
+            self.driver.execute_script("window.scrollTo(0, 0);")
+            time.sleep(1)
+            
+            # ==========================================
+            # Save debug files
+            # ==========================================
+            try:
+                page_source = self.driver.page_source
+                with open('last_scrape_debug.html', 'w', encoding='utf-8') as f:
+                    f.write(page_source)
+                print("  ✓ Saved page source to last_scrape_debug.html")
+            except:
+                page_source = ""
+            
+            body_text = self.driver.find_element(By.TAG_NAME, "body").text
+            try:
+                with open('last_scrape_text.txt', 'w', encoding='utf-8') as f:
+                    f.write(body_text)
+                print("  ✓ Saved page text to last_scrape_text.txt")
+            except:
+                pass
+            
+            # ==========================================
+            # Extract overall attendance
+            # ==========================================
+            print("\nLooking for overall attendance...")
+            overall_match = re.search(
+                r'Overall\s+Attendance\s*\n\s*(\d+(?:\.\d+)?)\s*%',
+                body_text, re.IGNORECASE
+            )
+            if overall_match:
+                pct = float(overall_match.group(1))
+                overall_attendance = {'present': None, 'total': None, 'percentage': pct}
+                print(f"  ✓ Overall attendance: {pct}%")
+            else:
+                # Fallback patterns
+                for pat in [
+                    re.compile(r'overall[:\s]*(\d+(?:\.\d+)?)\s*%', re.IGNORECASE),
+                    re.compile(r'overall\s*(?:attendance)?[:\s]*(\d+)\s*[/of]\s*(\d+)', re.IGNORECASE),
+                ]:
+                    m = pat.search(body_text)
+                    if m:
+                        groups = m.groups()
+                        if len(groups) == 1:
+                            overall_attendance = {'present': None, 'total': None, 'percentage': float(groups[0])}
+                        elif len(groups) == 2:
+                            p, t = int(groups[0]), int(groups[1])
+                            overall_attendance = {'present': p, 'total': t, 'percentage': round(p/t*100, 2) if t > 0 else 0}
+                        print(f"  ✓ Overall attendance found")
                         break
             
-            # Method 1: Look for card/container elements with attendance data
-            print("Method 1: Searching for attendance cards...")
+            # ==========================================
+            # Parse attendance using Acharya ERP format
+            # ==========================================
+            # The ERP renders each subject as separate lines:
+            #   SubjectName
+            #   CourseCode
+            #   ShortCode
+            #   X
+            #   of
+            #   Y
+            #   classes
+            #   Z%
+            # We look for the pattern: <number> \n of \n <number> \n classes
             
-            # Common selectors for attendance cards in modern ERPs
-            card_selectors = [
-                ".attendance-card",
-                "[class*='attendance'] [class*='card']",
-                ".subject-card",
-                ".course-card", 
-                "[class*='subject'][class*='card']",
-                ".MuiCard-root",  # Material UI cards
-                "[class*='card'][class*='course']",
-                ".card.mb-3",  # Bootstrap cards
-                "[class*='attendance-item']",
-                ".list-group-item",
-            ]
+            print("\nExtracting subject attendance...")
+            lines = body_text.split('\n')
+            lines = [l.strip() for l in lines]
             
-            cards = []
-            for selector in card_selectors:
-                try:
-                    found = self.driver.find_elements(By.CSS_SELECTOR, selector)
-                    if found:
-                        cards.extend(found)
-                        print(f"  Found {len(found)} elements with selector: {selector}")
-                except:
-                    pass
-            
-            # Remove duplicates by checking element IDs
-            unique_cards = []
-            seen_ids = set()
-            for card in cards:
-                card_id = card.id if card.id else id(card)
-                if card_id not in seen_ids:
-                    seen_ids.add(card_id)
-                    unique_cards.append(card)
-            
-            # Process cards
-            for card in unique_cards:
-                try:
-                    card_text = card.text
-                    
-                    # Look for attendance patterns in card
-                    patterns = [
-                        re.compile(r'(\d+)\s*of\s*(\d+)\s*classes?', re.IGNORECASE),
-                        re.compile(r'(\d+)\s*/\s*(\d+)', re.IGNORECASE),
-                        re.compile(r'Present[:\s]*(\d+).*?Total[:\s]*(\d+)', re.IGNORECASE | re.DOTALL),
-                        re.compile(r'Attended[:\s]*(\d+).*?Total[:\s]*(\d+)', re.IGNORECASE | re.DOTALL),
-                        re.compile(r'(\d+)\s*classes?\s*attended.*?(\d+)\s*total', re.IGNORECASE),
-                    ]
-                    
-                    present, total = None, None
-                    for pattern in patterns:
-                        match = pattern.search(card_text)
-                        if match:
-                            present = int(match.group(1))
-                            total = int(match.group(2))
-                            break
-                    
-                    if present is not None and total is not None and total > 0:
-                        # Find subject name - look for heading elements or specific data attributes
-                        subject_name = None
-                        
-                        # Try to find heading elements or aria-labels within the card
-                        heading_selectors = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 
-                                            '[class*="title"]', '[class*="heading"]', 
-                                            '[class*="subject"]', '[class*="course-name"]',
-                                            '[class*="course-title"]', '[class*="subject-name"]',
-                                            '.card-title', '.card-header', '[data-subject]',
-                                            '[aria-label*="subject"]', '[aria-label*="course"]']
-                        
-                        for sel in heading_selectors:
-                            try:
-                                elements = card.find_elements(By.CSS_SELECTOR, sel)
-                                if elements:
-                                    for elem in elements:
-                                        if elem and elem.text.strip():
-                                            potential_name = elem.text.strip().split('\n')[0]
-                                            # Validate it's a real subject name
-                                            if self.is_valid_subject_name(potential_name):
-                                                subject_name = potential_name
-                                                break
-                                    if subject_name:
-                                        break
-                            except:
-                                pass
-                        # Fallback: get first meaningful line from card text
-                        if not subject_name:
-                            lines = [l.strip() for l in card_text.split('\n') if l.strip()]
-                            for line in lines:
-                                # Use the validation function to check if this is a real subject name
-                                if self.is_valid_subject_name(line):
-                                    subject_name = line
-                                    break
-                        
-                        if subject_name and subject_name not in processed:
-                            percentage = round((present / total) * 100, 2)
-                            attendance_data.append({
-                                'subject': subject_name,
-                                'present': present,
-                                'total': total,
-                                'percentage': percentage
-                            })
-                            processed.add(subject_name)
-                            print(f"  ✓ Found: {subject_name}: {present}/{total} ({percentage}%)")
-                except Exception as e:
-                    continue
-            
-            # Method 2: Look for tables with attendance data
-            if not attendance_data:
-                print("Method 2: Searching for attendance tables...")
-                try:
-                    tables = self.driver.find_elements(By.CSS_SELECTOR, "table")
-                    for table in tables:
-                        rows = table.find_elements(By.CSS_SELECTOR, "tr")
-                        for row in rows:
-                            row_text = row.text
-                            
-                            # Look for attendance pattern in row
-                            match = re.search(r'(\d+)\s*(?:of|/)\s*(\d+)', row_text)
-                            if match:
-                                present = int(match.group(1))
-                                total = int(match.group(2))
-                                
-                                if total > 0:
-                                    # Get cells
-                                    cells = row.find_elements(By.CSS_SELECTOR, "td, th")
-                                    subject_name = None
-                                    
-                                    # First cell is usually subject name
-                                    if cells:
-                                        potential_name = cells[0].text.strip()
-                                        if potential_name and len(potential_name) > 3:
-                                            skip = ['sl', 'no', '#', 'subject', 'serial', 'course']
-                                            # Skip if it looks like attendance data (e.g., "2of5classes" or "10/15")
-                                            if re.search(r'\d+\s*(?:of|/)\s*\d+', potential_name, re.IGNORECASE):
-                                                continue
-                                            # Skip if more than 50% are digits
-                                            digit_pct = sum(1 for c in potential_name if c.isdigit()) / len(potential_name) if len(potential_name) > 0 else 0
-                                            if digit_pct > 0.5:
-                                                continue
-                                            if not any(s.lower() == potential_name.lower() for s in skip):
-                                                subject_name = potential_name
-                                    
-                                    if subject_name and subject_name not in processed:
-                                        percentage = round((present / total) * 100, 2)
-                                        attendance_data.append({
-                                            'subject': subject_name,
-                                            'present': present,
-                                            'total': total,
-                                            'percentage': percentage
-                                        })
-                                        processed.add(subject_name)
-                                        print(f"  ✓ Found: {subject_name}: {present}/{total} ({percentage}%)")
-                except Exception as e:
-                    print(f"  Table extraction error: {e}")
-            
-            # Method 3: Fallback to text-based extraction with improved logic
-            if not attendance_data:
-                print("Method 3: Fallback text-based extraction...")
-                body_text = self.driver.find_element(By.TAG_NAME, "body").text
-                lines = body_text.split('\n')
+            # Find all attendance blocks by looking for various patterns:
+            # Format 1 (multiline): lines[i]=number, lines[i+1]="of", lines[i+2]=number, lines[i+3]="classes"  
+            # Format 2 (spaced): "3 of 5 classes"
+            # Format 3 (joined): "3of5classes" or "1of2classes" (Acharya /attendance page)
+            i = 0
+            while i < len(lines):
+                present, total = None, None
+                skip_count = 1  # How many lines to skip after match
                 
-                attendance_pattern = re.compile(r'(\d+)\s*of\s*(\d+)\s*classes?', re.IGNORECASE)
+                # Format 1: Multiline  X / of / Y / classes
+                if (i < len(lines) - 3 and
+                    lines[i].isdigit() and 
+                    lines[i+1].lower() == 'of' and 
+                    lines[i+2].isdigit() and 
+                    lines[i+3].lower().startswith('class')):
+                    present = int(lines[i])
+                    total = int(lines[i+2])
+                    skip_count = 4
                 
-                for i, line in enumerate(lines):
-                    line = line.strip()
-                    if not line:
-                        continue
-                    
-                    match = attendance_pattern.search(line)
+                # Format 2 & 3: Single-line with optional spaces
+                # Matches: "3 of 5 classes", "3of5classes", "3 of5 classes", etc.
+                if present is None:
+                    match = re.match(r'^(\d+)\s*of\s*(\d+)\s*classes?$', lines[i], re.IGNORECASE)
                     if match:
                         present = int(match.group(1))
                         total = int(match.group(2))
+                        skip_count = 1
+                
+                if present is not None and total is not None and total > 0:
+                    # Search BACKWARDS for the subject name
+                    # The structure before attendance is: [%], SubjectName, CourseCode, XofYclasses
+                    # OR: SubjectName, CourseCode, ShortCode, X, of, Y, classes
+                    subject_name = None
+                    for j in range(i-1, max(0, i-8), -1):
+                        candidate = lines[j].strip()
+                        if not candidate:
+                            continue
+                        if self.is_valid_subject_name(candidate):
+                            subject_name = candidate
+                            break
+                    
+                    if subject_name and subject_name not in processed:
+                        percentage = round((present / total) * 100, 2)
+                        attendance_data.append({
+                            'subject': subject_name,
+                            'present': present,
+                            'total': total,
+                            'percentage': percentage
+                        })
+                        processed.add(subject_name)
+                        print(f"  ✓ {subject_name}: {present}/{total} ({percentage}%)")
+                    
+                    i += skip_count
+                    continue
+                
+                i += 1
+            
+            # ==========================================
+            # Fallback: card-based extraction
+            # ==========================================
+            if not attendance_data:
+                print("\nFallback: Card-based extraction...")
+                
+                card_selectors = [
+                    ".MuiCard-root",
+                    ".MuiPaper-root",
+                    "[class*='card']",
+                    "[class*='attendance']",
+                ]
+                
+                cards = []
+                for selector in card_selectors:
+                    try:
+                        found = self.driver.find_elements(By.CSS_SELECTOR, selector)
+                        if found:
+                            cards.extend(found)
+                    except:
+                        pass
+                
+                seen_ids = set()
+                for card in cards:
+                    try:
+                        card_id = card.id if card.id else id(card)
+                        if card_id in seen_ids:
+                            continue
+                        seen_ids.add(card_id)
                         
-                        if total > 0:
-                            # Look backwards more carefully for subject name
+                        card_text = card.text.strip()
+                        if not card_text:
+                            continue
+                        
+                        card_lines = [l.strip() for l in card_text.split('\n') if l.strip()]
+                        
+                        # Look for multiline attendance pattern in card
+                        present, total = None, None
+                        for ci in range(len(card_lines) - 3):
+                            if (card_lines[ci].isdigit() and 
+                                card_lines[ci+1].lower() == 'of' and 
+                                card_lines[ci+2].isdigit() and
+                                ci+3 < len(card_lines) and card_lines[ci+3].lower().startswith('class')):
+                                present = int(card_lines[ci])
+                                total = int(card_lines[ci+2])
+                                break
+                        
+                        # Also try single-line
+                        if present is None:
+                            for cl in card_lines:
+                                m = re.search(r'(\d+)\s*of\s*(\d+)\s*classes?', cl, re.IGNORECASE)
+                                if m:
+                                    present = int(m.group(1))
+                                    total = int(m.group(2))
+                                    break
+                        
+                        if present is not None and total is not None and total > 0:
                             subject_name = None
-                            for j in range(i-1, max(0, i-5), -1):
-                                prev_line = lines[j].strip()
-                                if prev_line and len(prev_line) > 8:
-                                    # More comprehensive skip list
-                                    skip_patterns = [
-                                        'attendance', 'overview', 'semester', 'present classes', 
-                                        'total classes', 'view and track', 'dashboard', 'calendar',
-                                        'my courses', 'mentorship', 'exam', 'fee payment', 'lms',
-                                        'feedback', 'student', 'beta', 'acharya erp', 'toggle',
-                                        'offline', 'present', 'records', 'absent', 'percentage',
-                                        '%', 'of classes', 'classes attended', 'total', 'click',
-                                        'view details', 'show more', 'see all'
-                                    ]
-                                    
-                                    # Check if line is likely a subject name
-                                    is_valid = True
-                                    for skip in skip_patterns:
-                                        if skip.lower() in prev_line.lower():
-                                            is_valid = False
-                                            break
-                                    
-                                    # Also check it's not just a number or percentage
-                                    if is_valid and not re.match(r'^[\d.%\s]+$', prev_line):
-                                        subject_name = prev_line
-                                        break
+                            for cl in card_lines:
+                                if self.is_valid_subject_name(cl):
+                                    subject_name = cl
+                                    break
                             
                             if subject_name and subject_name not in processed:
                                 percentage = round((present / total) * 100, 2)
@@ -624,14 +870,22 @@ class AcharyaERPScraper:
                                     'percentage': percentage
                                 })
                                 processed.add(subject_name)
-                                print(f"  ✓ Found: {subject_name}: {present}/{total} ({percentage}%)")
+                                print(f"  ✓ {subject_name}: {present}/{total} ({percentage}%)")
+                    except:
+                        continue
             
+            # ==========================================
+            # Return results
+            # ==========================================
             if attendance_data:
-                # Sort by subject name for consistency
                 attendance_data.sort(key=lambda x: x['subject'])
                 print(f"\n✓ Successfully extracted {len(attendance_data)} subjects")
                 
-                # If no overall found, calculate from subjects
+                print("\n--- EXTRACTED SUBJECTS ---")
+                for s in attendance_data:
+                    print(f"  {s['subject']}: {s['present']}/{s['total']} ({s['percentage']}%)")
+                print("--- END ---\n")
+                
                 if not overall_attendance:
                     total_present = sum(s['present'] for s in attendance_data)
                     total_classes = sum(s['total'] for s in attendance_data)
@@ -641,16 +895,14 @@ class AcharyaERPScraper:
                             'total': total_classes,
                             'percentage': round((total_present / total_classes) * 100, 2)
                         }
-                        print(f"  ✓ Calculated overall: {total_present}/{total_classes} ({overall_attendance['percentage']}%)")
                 
-                # Return dict with both subjects and overall
                 return {
                     'subjects': attendance_data,
                     'overall': overall_attendance
                 }
             
             print("\n⚠ No attendance data found automatically.")
-            print("Please ensure you are on the attendance page with subject cards visible.")
+            print("Check last_scrape_debug.html and last_scrape_text.txt for debugging.")
             return None
             
         except Exception as e:
@@ -820,15 +1072,18 @@ class AcharyaERPScraper:
                 return None
             
             print("\nExtracting attendance data...")
-            data = self.extract_attendance_data()
+            raw_data = self.extract_attendance_data()
             
-            if data and len(data) > 0:
+            # extract_attendance_data returns {'subjects': [...], 'overall': {...}} or None
+            if raw_data and isinstance(raw_data, dict) and raw_data.get('subjects'):
+                subjects_data = raw_data['subjects']
+                
                 if auto_mode:
                     # Auto mode: save without verification (for web interface)
-                    verified_data = data
+                    verified_data = subjects_data
                 else:
                     # Interactive mode: verify data with user
-                    verified_data = self.verify_and_correct_data(data)
+                    verified_data = self.verify_and_correct_data(subjects_data)
                 
                 if verified_data:
                     filename = self.save_data(verified_data)

@@ -1085,6 +1085,8 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 12px;
         }
 
         .calendar-title {
@@ -1094,7 +1096,8 @@
 
         .calendar-legend {
             display: flex;
-            gap: 14px;
+            gap: 10px;
+            flex-wrap: wrap;
         }
 
         .legend-item {
@@ -1119,10 +1122,25 @@
             background: var(--danger);
         }
 
+        /* Subject color palette - vibrant colors for dark theme */
+        .subject-color-0 { --subj-color: #6366f1; } /* Indigo */
+        .subject-color-1 { --subj-color: #f59e0b; } /* Amber */
+        .subject-color-2 { --subj-color: #10b981; } /* Emerald */
+        .subject-color-3 { --subj-color: #ef4444; } /* Red */
+        .subject-color-4 { --subj-color: #8b5cf6; } /* Violet */
+        .subject-color-5 { --subj-color: #06b6d4; } /* Cyan */
+        .subject-color-6 { --subj-color: #ec4899; } /* Pink */
+        .subject-color-7 { --subj-color: #84cc16; } /* Lime */
+        .subject-color-8 { --subj-color: #f97316; } /* Orange */
+        .subject-color-9 { --subj-color: #14b8a6; } /* Teal */
+        .subject-color-10 { --subj-color: #a78bfa; } /* Purple */
+        .subject-color-11 { --subj-color: #fb923c; } /* Light Orange */
+
         .calendar-actions {
             display: flex;
             gap: 8px;
             align-items: center;
+            flex-wrap: wrap;
         }
 
         .calendar-actions .btn-secondary {
@@ -1159,18 +1177,25 @@
             letter-spacing: 0.5px;
         }
 
+        .day-header.today {
+            color: var(--success);
+            border-bottom-color: var(--success);
+        }
+
         .class-slot {
             background: var(--bg-layer-2);
             border-radius: 6px;
             padding: 8px 10px;
             margin-bottom: 6px;
-            border-left: 2px solid var(--border);
+            border-left: 3px solid var(--subj-color, var(--border));
             transition: all 0.15s;
             cursor: pointer;
+            position: relative;
         }
 
         .class-slot:hover {
             background: var(--bg-layer-3);
+            transform: translateX(2px);
         }
 
         .class-slot.bunkable {
@@ -1179,6 +1204,28 @@
 
         .class-slot.risky {
             border-left-color: var(--danger);
+        }
+
+        .class-slot .event-type-badge {
+            display: inline-block;
+            font-size: 9px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 1px 5px;
+            border-radius: 3px;
+            margin-bottom: 3px;
+            color: var(--subj-color, var(--accent));
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .class-slot .event-type-badge.lab {
+            color: #06b6d4;
+        }
+
+        .class-slot .event-type-badge.tutorial {
+            color: #8b5cf6;
         }
 
         .class-time {
@@ -1191,6 +1238,7 @@
             font-weight: 500;
             font-size: 12px;
             margin-bottom: 2px;
+            color: var(--subj-color, var(--text-primary));
         }
 
         .class-status {
@@ -1967,7 +2015,8 @@
         <!-- Calendar View -->
         <div id="calendarView" class="calendar-container">
             <div class="calendar-header">
-                <div class="calendar-legend">
+                <div id="calendarLegend" class="calendar-legend">
+                    <!-- Legend items will be populated by JS based on subjects -->
                     <div class="legend-item">
                         <div class="legend-dot bunkable"></div>
                         <span>Can Bunk</span>
@@ -2326,9 +2375,9 @@
 
                 // Use ERP overall attendance (directly from ERP)
                 const erpOverall = data.erp_overall || {};
-                const avg = erpOverall.percentage !== undefined ? erpOverall.percentage : data.stats.average;
-                const totalPresent = erpOverall.present !== undefined ? erpOverall.present : (data.stats.total_present || 0);
-                const totalClasses = erpOverall.total !== undefined ? erpOverall.total : (data.stats.total_classes || 0);
+                const avg = (erpOverall.percentage != null) ? erpOverall.percentage : data.stats.average;
+                const totalPresent = (erpOverall.present != null) ? erpOverall.present : (data.stats.total_present || 0);
+                const totalClasses = (erpOverall.total != null) ? erpOverall.total : (data.stats.total_classes || 0);
 
                 document.getElementById('totalSubjects').textContent = total;
                 document.getElementById('safeSubjects').textContent = safe;
@@ -2430,6 +2479,58 @@
         let timetableData = [];
         const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
+        // Subject color mapping - assigns each unique subject a color index
+        let subjectColorMap = {};
+
+        function buildSubjectColorMap(timetable) {
+            subjectColorMap = {};
+            const uniqueSubjects = [...new Set(timetable.map(e => e.subject))];
+            uniqueSubjects.forEach((subj, idx) => {
+                subjectColorMap[subj] = idx % 12; // 12 color palette
+            });
+        }
+
+        function getSubjectColorClass(subject) {
+            const idx = subjectColorMap[subject] ?? 0;
+            return `subject-color-${idx}`;
+        }
+
+        function renderSubjectLegend(timetable) {
+            const legendEl = document.getElementById('calendarLegend');
+            if (!legendEl) return;
+
+            const uniqueSubjects = [...new Set(timetable.map(e => e.subject))];
+            const colors = [
+                '#6366f1', '#f59e0b', '#10b981', '#ef4444', '#8b5cf6', '#06b6d4',
+                '#ec4899', '#84cc16', '#f97316', '#14b8a6', '#a78bfa', '#fb923c'
+            ];
+
+            let html = '';
+            uniqueSubjects.forEach((subj, idx) => {
+                const color = colors[idx % 12];
+                html += `
+                    <div class="legend-item">
+                        <div class="legend-dot" style="background: ${color};"></div>
+                        <span>${subj}</span>
+                    </div>
+                `;
+            });
+
+            // Add bunk/risky legend at end
+            html += `
+                <div class="legend-item" style="margin-left: 8px; padding-left: 8px; border-left: 1px solid var(--border);">
+                    <div class="legend-dot bunkable"></div>
+                    <span>Can Bunk</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-dot risky"></div>
+                    <span>Don't Skip</span>
+                </div>
+            `;
+
+            legendEl.innerHTML = html;
+        }
+
         async function loadTimetable() {
             try {
                 const response = await fetch('/api/timetable', {
@@ -2443,6 +2544,10 @@
 
                 const data = await response.json();
                 timetableData = data.timetable || [];
+
+                // Build color map from timetable data
+                buildSubjectColorMap(timetableData);
+                renderSubjectLegend(timetableData);
                 renderCalendar(timetableData);
 
                 // Also load today's schedule
@@ -2486,6 +2591,11 @@
 
             section.style.display = 'block';
 
+            const colors = [
+                '#6366f1', '#f59e0b', '#10b981', '#ef4444', '#8b5cf6', '#06b6d4',
+                '#ec4899', '#84cc16', '#f97316', '#14b8a6', '#a78bfa', '#fb923c'
+            ];
+
             let html = '';
 
             data.schedule.forEach(classItem => {
@@ -2501,13 +2611,18 @@
                     ? '<strong>✓ Safe to Skip</strong>'
                     : '<strong>✗ Don\'t Skip</strong>';
 
+                const colorIdx = subjectColorMap[classItem.subject] ?? 0;
+                const subjColor = colors[colorIdx % 12];
+                const eventType = classItem.event_type || 'Lecture';
+                const badgeClass = eventType === 'Lab' ? 'lab' : eventType === 'Tutorial' ? 'tutorial' : '';
+
                 html += `
-                    <div class="todays-class-card ${statusClass}">
-                        <div class="class-time">
-                            <i class="fas fa-clock" style="margin-right: 6px;"></i>
-                            ${classItem.start_time || '?'} - ${classItem.end_time || '?'}
+                    <div class="todays-class-card ${statusClass}" style="border-left: 4px solid ${subjColor};">
+                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                            <span class="event-type-badge ${badgeClass}" style="color: ${subjColor}; font-size: 10px; font-weight: 600; text-transform: uppercase; padding: 1px 6px; border-radius: 3px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08);">${eventType}</span>
+                            <span style="font-size: 11px; color: var(--text-muted);">Class #${(classItem.order || 0) + 1}</span>
                         </div>
-                        <div class="class-subject">${classItem.subject}</div>
+                        <div class="class-subject" style="color: ${subjColor};">${classItem.subject}</div>
                         <div class="class-bunk-status ${statusClass}">
                             <i class="fas ${statusIcon} bunk-icon"></i>
                             ${canBunkText}
@@ -2538,12 +2653,17 @@
 
         function renderEmptyCalendar() {
             const container = document.getElementById('weeklyCalendar');
+            const todayIdx = new Date().getDay();
+            // Convert JS getDay (0=Sun) to our format (0=Mon)
+            const todayOurIdx = todayIdx === 0 ? 6 : todayIdx - 1;
+
             let html = '';
 
             dayNames.forEach((day, idx) => {
+                const isToday = idx === todayOurIdx;
                 html += `
-                    <div class="day-column">
-                        <div class="day-header">${day}</div>
+                    <div class="day-column" ${isToday ? 'style="border-color: var(--accent);"' : ''}>
+                        <div class="day-header ${isToday ? 'today' : ''}">${day}${isToday ? ' (Today)' : ''}</div>
                         <div class="empty-day">
                             <p style="color: var(--text-muted); font-size: 0.85rem; text-align: center; padding: 20px 0;">
                                 No classes
@@ -2561,6 +2681,13 @@
 
         function renderCalendar(timetable) {
             const container = document.getElementById('weeklyCalendar');
+            const todayIdx = new Date().getDay();
+            const todayOurIdx = todayIdx === 0 ? 6 : todayIdx - 1;
+
+            const colors = [
+                '#6366f1', '#f59e0b', '#10b981', '#ef4444', '#8b5cf6', '#06b6d4',
+                '#ec4899', '#84cc16', '#f97316', '#14b8a6', '#a78bfa', '#fb923c'
+            ];
 
             // Group classes by day
             const byDay = {};
@@ -2576,17 +2703,21 @@
 
             dayNames.forEach((dayName, idx) => {
                 const classes = byDay[idx] || [];
+                const isToday = idx === todayOurIdx;
 
-                // Sort by start time
+                // Sort by order first, then by start time
                 classes.sort((a, b) => {
+                    if (a.order !== undefined && b.order !== undefined) {
+                        return a.order - b.order;
+                    }
                     if (!a.start_time) return 1;
                     if (!b.start_time) return -1;
                     return a.start_time.localeCompare(b.start_time);
                 });
 
                 html += `
-                    <div class="day-column">
-                        <div class="day-header">${dayName}</div>
+                    <div class="day-column" ${isToday ? 'style="border-color: var(--accent);"' : ''}>
+                        <div class="day-header ${isToday ? 'today' : ''}">${dayName}${isToday ? ' ★' : ''}</div>
                 `;
 
                 if (classes.length === 0) {
@@ -2598,19 +2729,28 @@
                         </div>
                     `;
                 } else {
-                    classes.forEach(cls => {
+                    classes.forEach((cls, slotIdx) => {
+                        const colorIdx = subjectColorMap[cls.subject] ?? 0;
+                        const subjColor = colors[colorIdx % 12];
+                        const colorClass = getSubjectColorClass(cls.subject);
+                        const eventType = cls.event_type || 'Lecture';
+                        const badgeClass = eventType === 'Lab' ? 'lab' : eventType === 'Tutorial' ? 'tutorial' : '';
+
+                        // Bunk status
                         const statusClass = cls.can_bunk ? 'bunkable' : 'risky';
                         const statusIcon = cls.can_bunk ? 'fa-check-circle' : 'fa-exclamation-circle';
                         const statusText = cls.can_bunk
                             ? `Can skip (${cls.classes_to_spare} left)`
                             : `Don't skip (${cls.current_pct.toFixed(1)}%)`;
 
+                        const hasTime = cls.start_time && cls.start_time !== 'null';
+
                         html += `
-                            <div class="class-slot ${statusClass}" onclick="deleteClassPrompt('${cls.subject.replace(/'/g, "\\'")}', ${idx}, '${cls.start_time}')">
-                                <div class="class-time">
-                                    ${cls.start_time || '?'} - ${cls.end_time || '?'}
-                                </div>
-                                <div class="class-name">${cls.subject}</div>
+                            <div class="class-slot ${colorClass}" style="border-left-color: ${subjColor};" 
+                                 onclick="deleteClassPrompt('${cls.subject.replace(/'/g, "\\'")}', ${idx}, ${cls.order ?? slotIdx})">
+                                <div class="event-type-badge ${badgeClass}" style="color: ${subjColor};">${eventType}</div>
+                                ${hasTime ? `<div class="class-time">${cls.start_time} - ${cls.end_time || '?'}</div>` : ''}
+                                <div class="class-name" style="color: ${subjColor};">${cls.subject}</div>
                                 <div class="class-status ${statusClass}">
                                     <i class="fas ${statusIcon}"></i>
                                     ${statusText}
@@ -2632,21 +2772,80 @@
         }
 
         function showAddClassModal(dayIndex = 0) {
-            const subject = prompt('Enter subject name:');
-            if (!subject) return;
-
-            const startTime = prompt('Enter start time (e.g., 09:00):', '09:00');
-            if (!startTime) return;
-
-            const endTime = prompt('Enter end time (e.g., 10:00):', '10:00');
-            if (!endTime) return;
-
-            const day = dayIndex !== undefined ? dayIndex : parseInt(prompt('Enter day (0=Mon, 1=Tue, ..., 6=Sun):', '0') || '0');
-
-            addTimetableEntry(subject, day, startTime, endTime);
+            const modalHtml = `
+                <div id="addClassModal" style="position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 1000;">
+                    <div style="background: var(--bg-layer-1); border-radius: 16px; padding: 24px; width: 90%; max-width: 400px; border: 1px solid var(--border);">
+                        <h3 style="margin-bottom: 16px; color: var(--text-primary);">
+                            <i class="fas fa-plus-circle" style="color: var(--accent);"></i> Add Class
+                        </h3>
+                        <div style="display: flex; flex-direction: column; gap: 12px;">
+                            <div>
+                                <label style="font-size: 12px; color: var(--text-secondary); display: block; margin-bottom: 4px;">Subject Name</label>
+                                <input type="text" id="addClassSubject" placeholder="e.g. Data Structures" 
+                                    style="width: 100%; padding: 8px 12px; background: var(--bg-layer-2); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); font-size: 14px;">
+                            </div>
+                            <div>
+                                <label style="font-size: 12px; color: var(--text-secondary); display: block; margin-bottom: 4px;">Day</label>
+                                <select id="addClassDay" style="width: 100%; padding: 8px 12px; background: var(--bg-layer-2); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); font-size: 14px;">
+                                    ${dayNames.map((d, i) => `<option value="${i}" ${i === dayIndex ? 'selected' : ''}>${d}</option>`).join('')}
+                                </select>
+                            </div>
+                            <div>
+                                <label style="font-size: 12px; color: var(--text-secondary); display: block; margin-bottom: 4px;">Type</label>
+                                <select id="addClassType" style="width: 100%; padding: 8px 12px; background: var(--bg-layer-2); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); font-size: 14px;">
+                                    <option value="Lecture">Lecture</option>
+                                    <option value="Lab">Lab</option>
+                                    <option value="Tutorial">Tutorial</option>
+                                </select>
+                            </div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                                <div>
+                                    <label style="font-size: 12px; color: var(--text-secondary); display: block; margin-bottom: 4px;">Start Time (optional)</label>
+                                    <input type="time" id="addClassStart" 
+                                        style="width: 100%; padding: 8px 12px; background: var(--bg-layer-2); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); font-size: 14px;">
+                                </div>
+                                <div>
+                                    <label style="font-size: 12px; color: var(--text-secondary); display: block; margin-bottom: 4px;">End Time (optional)</label>
+                                    <input type="time" id="addClassEnd"
+                                        style="width: 100%; padding: 8px 12px; background: var(--bg-layer-2); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); font-size: 14px;">
+                                </div>
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 12px; margin-top: 20px; justify-content: flex-end;">
+                            <button onclick="closeAddClassModal()" class="btn btn-ghost">Cancel</button>
+                            <button onclick="submitAddClass()" class="btn btn-primary">
+                                <i class="fas fa-plus"></i> Add Class
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+            document.getElementById('addClassSubject').focus();
         }
 
-        async function addTimetableEntry(subject, day, startTime, endTime) {
+        function closeAddClassModal() {
+            const modal = document.getElementById('addClassModal');
+            if (modal) modal.remove();
+        }
+
+        function submitAddClass() {
+            const subject = document.getElementById('addClassSubject').value.trim();
+            const day = parseInt(document.getElementById('addClassDay').value);
+            const eventType = document.getElementById('addClassType').value;
+            const startTime = document.getElementById('addClassStart').value || null;
+            const endTime = document.getElementById('addClassEnd').value || null;
+
+            if (!subject) {
+                alert('Please enter a subject name');
+                return;
+            }
+
+            addTimetableEntry(subject, day, startTime, endTime, eventType);
+            closeAddClassModal();
+        }
+
+        async function addTimetableEntry(subject, day, startTime, endTime, eventType = 'Lecture') {
             try {
                 const response = await fetch('/api/timetable/add', {
                     method: 'POST',
@@ -2656,7 +2855,8 @@
                         subject: subject,
                         day: day,
                         start_time: startTime,
-                        end_time: endTime
+                        end_time: endTime,
+                        event_type: eventType
                     })
                 });
 
@@ -2671,9 +2871,9 @@
             }
         }
 
-        function deleteClassPrompt(subject, day, startTime) {
-            if (confirm(`Delete "${subject}" at ${startTime}?`)) {
-                deleteTimetableEntry(subject, day, startTime);
+        function deleteClassPrompt(subject, day, order) {
+            if (confirm(`Delete "${subject}"?`)) {
+                deleteTimetableEntry(subject, day, order);
             }
         }
 
@@ -2750,7 +2950,7 @@
             }
         }
 
-        async function deleteTimetableEntry(subject, day, startTime) {
+        async function deleteTimetableEntry(subject, day, order) {
             try {
                 const response = await fetch('/api/timetable/delete', {
                     method: 'POST',
@@ -2759,7 +2959,7 @@
                     body: JSON.stringify({
                         subject: subject,
                         day: day,
-                        start_time: startTime
+                        order: order
                     })
                 });
 
