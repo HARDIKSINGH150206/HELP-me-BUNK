@@ -159,6 +159,17 @@
       "erp_overall_total": null,
       "erp_overall_percentage": 71.43,
       "erp_overall_updated": "2026-03-11T12:26:13.347749"
+    },
+    "3c7d831b-9cb7-4399-b0df-": {
+      "username": "NARAKNIWASI",
+      "password_hash": "scrypt:32768:8:1$6Er0T5hJQP19iaNU$c75d4ec4ea3d131a6362879b5dd0966aab321b0ae2ffde7077ad6733ca5d875938797fb993088e8fa05986878a3b2162e11b16e24c1893845ebec5754c27bc18",
+      "erp_username": "AIT24BECS108",
+      "semester_start": "2026-03-22",
+      "semester_end": "2026-07-22",
+      "target_percentage": 75,
+      "created_at": "2026-03-22T14:55:20.326337",
+      "last_login": null,
+      "erp_password_encrypted": "gAAAAABpv7Wr8KpJQcRNOGbnKgarUiXzXYoSB4-SJ4QL29AvL0jcUIo-30dfborssb3vzBYLsI_Rre3BQXnngXphwXdqnvC96g=="
     }
   },
   "attendance": {

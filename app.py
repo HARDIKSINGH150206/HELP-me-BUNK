@@ -189,78 +189,165 @@ def login_required(f):
     return decorated_function
 
 def run_scraper_background(user_id, username, password):
-    """Run scraper in background thread (now using async HTTP API v2)"""
+    """
+    Run scraper in background thread with intelligent fallback.
+    
+    Strategy:
+    1. Try v2 (fast HTTP API) - if it works, save time/memory/CPU
+    2. Fallback to v1 (Selenium) - if v2 fails or API endpoints unknown
+    3. This ensures credentials work while we debug v2 API endpoints
+    """
     import asyncio
     from attendance_scraper_v2 import AcharyaScraper
+    from attendance_scraper import AcharyaERPScraper
     
     status = get_scraper_status(user_id)
     status['running'] = True
     status['progress'] = 'Initializing...'
     status['error'] = None
     status['complete'] = False
+    status['method'] = None  # Track which scraper was used
     
-    async def scrape_async():
-        """Async scraping function"""
+    async def scrape_with_v2():
+        """Try fast HTTP API v2 scraper"""
         try:
             async with AcharyaScraper(username, password) as scraper:
-                status['progress'] = 'Logging in...'
+                status['progress'] = 'Logging in (API v2)...'
                 if not await scraper.login():
-                    status['error'] = 'Login failed'
-                    return
+                    return False  # v2 failed, will fallback to v1
                 
-                status['progress'] = 'Fetching attendance data...'
+                status['progress'] = 'Fetching attendance data (API v2)...'
                 attendance_data = await scraper.get_attendance()
                 
-                if attendance_data and len(attendance_data) > 0:
-                    status['progress'] = 'Saving attendance data...'
-                    # v2 returns list of dict with: subject, present, total, percentage
-                    subjects = []
-                    for item in attendance_data:
-                        subjects.append({
-                            'subject': item.get('subject'),
-                            'present': item.get('present', 0),
-                            'total': item.get('total', 0),
-                            'percentage': item.get('percentage', 0.0)
-                        })
-                    db.save_attendance(user_id, subjects)
-                    status['progress'] = f'Attendance saved! ({len(subjects)} subjects)'
-                else:
-                    status['error'] = 'No attendance data found'
-                    return
+                if not attendance_data or len(attendance_data) == 0:
+                    return False  # No data, fallback to v1
                 
-                # Try to get courses/timetable data as replacement for old timetable extraction
-                status['progress'] = 'Fetching courses data...'
+                status['progress'] = 'Saving attendance data...'
+                # v2 returns list of dict with: subject, present, total, percentage
+                subjects = []
+                for item in attendance_data:
+                    subjects.append({
+                        'subject': item.get('subject'),
+                        'present': item.get('present', 0),
+                        'total': item.get('total', 0),
+                        'percentage': item.get('percentage', 0.0)
+                    })
+                db.save_attendance(user_id, subjects)
+                status['progress'] = f'✓ Attendance saved! ({len(subjects)} subjects)'
+                status['method'] = 'HTTP API v2 (fast)'
+                
+                # Try to get courses/timetable data
+                status['progress'] = 'Fetching courses data (API v2)...'
                 try:
                     courses_data = await scraper.get_courses()
                     if courses_data and len(courses_data) > 0:
-                        status['progress'] = f'Saving {len(courses_data)} courses...'
-                        try:
-                            # Save courses as timetable-like data
-                            db.save_timetable(user_id, courses_data)
-                            status['progress'] = 'Courses data saved!'
-                        except Exception as e:
-                            print(f"⚠ Warning: Could not save courses data: {e}")
-                    else:
-                        print("⚠ No courses data found")
+                        db.save_timetable(user_id, courses_data)
+                        status['progress'] = f'✓ Courses saved! ({len(courses_data)} items)'
                 except Exception as e:
-                    print(f"⚠ Warning: Could not fetch courses: {e}")
+                    print(f"⚠ Note: Could not fetch courses in v2: {e}")
                 
                 status['complete'] = True
+                return True
+        
+        except Exception as e:
+            print(f"⚠ v2 scraper failed: {e}")
+            return False
+    
+    def scrape_with_v1():
+        """Fallback to working Selenium v1 scraper"""
+        try:
+            scraper = AcharyaERPScraper(username, password)
+            
+            status['progress'] = 'Setting up browser...'
+            scraper.setup_driver()
+            
+            status['progress'] = 'Logging in (Selenium)...'
+            if not scraper.login():
+                status['error'] = 'Login failed - credentials incorrect or server down'
+                return False
+            
+            status['progress'] = 'Navigating to attendance...'
+            if not scraper.navigate_to_attendance():
+                status['error'] = 'Navigation failed'
+                return False
+            
+            status['progress'] = 'Extracting attendance data...'
+            data = scraper.extract_attendance_data()
+            
+            if not data:
+                status['error'] = 'No attendance data found'
+                return False
+            
+            status['progress'] = 'Saving attendance data...'
+            # Handle new format: data is now {'subjects': [...], 'overall': {...}}
+            if isinstance(data, dict) and 'subjects' in data:
+                subjects_data = data['subjects']
+                overall_data = data.get('overall')
+            else:
+                # Backwards compatibility for old format (list of subjects)
+                subjects_data = data if isinstance(data, list) else []
+                overall_data = None
+            
+            if subjects_data and len(subjects_data) > 0:
+                subjects = []
+                for item in subjects_data:
+                    subjects.append({
+                        'subject': item.get('subject'),
+                        'present': item.get('present', 0),
+                        'total': item.get('total', 0)
+                    })
+                db.save_attendance(user_id, subjects, overall=overall_data)
+                status['progress'] = f'✓ Attendance saved! ({len(subjects)} subjects)'
+            else:
+                status['error'] = 'No subject data found'
+                return False
+            
+            # Extract timetable
+            status['progress'] = 'Extracting timetable...'
+            if scraper.navigate_to_calendar():
+                timetable_data = scraper.extract_timetable_data()
+                if timetable_data and len(timetable_data) > 0:
+                    status['progress'] = f'Saving {len(timetable_data)} timetable entries...'
+                    try:
+                        db.save_timetable(user_id, timetable_data)
+                        status['progress'] = f'✓ Timetable saved!'
+                    except Exception as e:
+                        print(f"⚠ Warning: Could not save some timetable entries: {e}")
+            
+            status['complete'] = True
+            status['method'] = 'Selenium v1 (fallback)'
+            return True
         
         except Exception as e:
             status['error'] = str(e)
             print(f"✗ Scraper error: {e}")
             import traceback
             traceback.print_exc()
+            return False
+        
+        finally:
+            try:
+                if scraper and scraper.driver:
+                    scraper.driver.quit()
+            except:
+                pass
     
     try:
-        # Run async function in sync context using asyncio.run()
-        asyncio.run(scrape_async())
+        # Try v2 first (fast HTTP API)
+        print(f"\n🚀 Attempting fast API scraper (v2)...")
+        v2_success = asyncio.run(scrape_with_v2())
+        
+        if not v2_success:
+            # Fallback to v1 (Selenium - proven to work with real credentials)
+            print(f"\n⚠️  v2 API not responding - falling back to Selenium v1 (slower but reliable)...")
+            scrape_with_v1()
+    
     except Exception as e:
-        status['error'] = str(e)
+        # If asyncio fails, try v1 directly
         print(f"✗ Fatal error: {e}")
-        import traceback
-        traceback.print_exc()
+        print(f"Attempting fallback scraper...")
+        scrape_with_v1()
+    
     finally:
         status['running'] = False
 
