@@ -90,13 +90,11 @@
       "created_at": "2026-03-02T11:00:10.571961",
       "last_login": "2026-03-06T15:21:45.969451",
       "erp_password_encrypted": "gAAAAABppSBzk0Gj_ykwLsKnGZKZcn68BnSYS3Abm4abNpzYDrCHyrxQv1Gktlwih4D4R53v3JjZGdXkJbRvHFWWNf4yvxtQOA==",
-      "erp_overall_present": null,
-      "erp_overall_total": null,
-      "erp_overall_percentage": 56.92,
-      "erp_overall_updated": "2026-03-21T23:29:20.299798",
-      "telegram_chat_id": "8325368782",
-      "auto_sync_enabled": true,
-      "auto_sync_interval": 1
+      "erp_overall_present": 16,
+      "erp_overall_total": 35,
+      "erp_overall_percentage": 45.71,
+      "erp_overall_updated": "2026-03-09T11:15:26.238763",
+      "telegram_chat_id": "8325368782"
     },
     "244b48c8-711d-48b7-86e1-": {
       "username": "harrys",
@@ -138,27 +136,12 @@
       "created_at": "2026-03-03T16:27:27.707041",
       "last_login": null,
       "erp_password_encrypted": "gAAAAABppr6_L4LOE4BHXZNIEYLRh0MtKxipYOLBDOxSZOxk6tn4A3rvVtBUAwD0O-H9PfJCuOM8EVIqv6HZnHsuZnsH4a3GlA==",
-      "erp_overall_present": null,
-      "erp_overall_total": null,
-      "erp_overall_percentage": 55.81,
-      "erp_overall_updated": "2026-03-12T00:28:32.359971",
+      "erp_overall_present": 14,
+      "erp_overall_total": 33,
+      "erp_overall_percentage": 42.42,
+      "erp_overall_updated": "2026-03-06T14:09:43.495423",
       "auto_sync_enabled": true,
       "auto_sync_interval": 1
-    },
-    "bf562b77-03ce-4e61-a846-": {
-      "username": "AIT24BECS030",
-      "password_hash": "scrypt:32768:8:1$Vb2jPN04LVTILfnC$68ffe5dafb3d2e8894a09f2b2dd868cccb8776076baedf2eebd3598dd270d4b1a473bca8c7d709e361066973b38cf877a1f1f04e293f994d3f22181738b2e9f4",
-      "erp_username": "AIT24BECS030",
-      "semester_start": "2026-03-11",
-      "semester_end": "2026-07-11",
-      "target_percentage": 75,
-      "created_at": "2026-03-11T12:25:12.323537",
-      "last_login": null,
-      "erp_password_encrypted": "gAAAAABpsRH3WFgP6lsuW5eLFjiuTCc5sOqbknDQG5gPaDpIP41Aa8r27jvRSmSi2Li2cNxC0MCIkHFmU4-pvTikJTkcHknp4g==",
-      "erp_overall_present": null,
-      "erp_overall_total": null,
-      "erp_overall_percentage": 71.43,
-      "erp_overall_updated": "2026-03-11T12:26:13.347749"
     }
   },
   "attendance": {
@@ -337,68 +320,131 @@
       }
     },
     "035c304a-dc40-4065-b0fc-": {
+      "1of4classes": {
+        "subject": "1of4classes",
+        "present": 0,
+        "total": 1,
+        "percentage": 0.0,
+        "last_updated": "2026-03-03T10:27:27.844941"
+      },
       "Analysis & Design of Algorithms": {
         "subject": "Analysis & Design of Algorithms",
-        "present": 6,
-        "total": 9,
-        "percentage": 66.67,
-        "last_updated": "2026-03-21T23:29:20.299770"
+        "present": 3,
+        "total": 5,
+        "percentage": 60.0,
+        "last_updated": "2026-03-09T11:05:23.444736"
       },
       "Analysis & Design of Algorithms Lab": {
         "subject": "Analysis & Design of Algorithms Lab",
         "present": 1,
-        "total": 4,
-        "percentage": 25.0,
-        "last_updated": "2026-03-21T23:29:20.299783"
+        "total": 2,
+        "percentage": 50.0,
+        "last_updated": "2026-03-09T11:05:23.444751"
       },
       "Biology For Computer Engineers": {
         "subject": "Biology For Computer Engineers",
-        "present": 3,
-        "total": 4,
-        "percentage": 75.0,
-        "last_updated": "2026-03-21T23:29:20.299785"
+        "present": 1,
+        "total": 2,
+        "percentage": 50.0,
+        "last_updated": "2026-03-09T11:05:23.444763"
       },
       "Database Management Systems": {
         "subject": "Database Management Systems",
-        "present": 9,
-        "total": 15,
-        "percentage": 60.0,
-        "last_updated": "2026-03-21T23:29:20.299787"
+        "present": 3,
+        "total": 7,
+        "percentage": 42.86,
+        "last_updated": "2026-03-09T11:05:23.444775"
       },
       "Discrete Mathematical Structures": {
         "subject": "Discrete Mathematical Structures",
-        "present": 7,
-        "total": 13,
-        "percentage": 53.85,
-        "last_updated": "2026-03-21T23:29:20.299789"
-      },
-      "Forum Activity": {
-        "subject": "Forum Activity",
-        "present": 1,
-        "total": 1,
-        "percentage": 100.0,
-        "last_updated": "2026-03-21T23:29:20.299790"
+        "present": 4,
+        "total": 8,
+        "percentage": 50.0,
+        "last_updated": "2026-03-09T11:05:23.444785"
       },
       "Microcontrollers": {
         "subject": "Microcontrollers",
-        "present": 7,
-        "total": 12,
-        "percentage": 58.33,
-        "last_updated": "2026-03-21T23:29:20.299792"
-      },
-      "UI/UX": {
-        "subject": "UI/UX",
-        "present": 2,
-        "total": 4,
-        "percentage": 50.0,
-        "last_updated": "2026-03-21T23:29:20.299793"
+        "present": 3,
+        "total": 7,
+        "percentage": 42.86,
+        "last_updated": "2026-03-09T11:05:23.444796"
       },
       "Universal human values course": {
         "subject": "Universal human values course",
         "present": 1,
-        "total": 3,
-        "percentage": 33.33,
-        "last_updated": "2026-03-21T23:29:20.299795"
+        "total": 2,
+        "percentage": 50.0,
+        "last_updated": "2026-03-09T11:05:23.444806"
+      },
+      "2of6classes": {
+        "subject": "2of6classes",
+        "present": 0,
+        "total": 2,
+        "percentage": 0.0,
+        "last_updated": "2026-03-05T21:55:37.771434"
+      },
+      "3of7classes": {
+        "subject": "3of7classes",
+        "present": 0,
+        "total": 2,
+        "percentage": 0.0,
+        "last_updated": "2026-03-09T11:05:23.444701"
+      },
+      "BBOC407": {
+        "subject": "BBOC407",
+        "present": 1,
+        "total": 2,
+        "percentage": 50.0,
+        "last_updated": "2026-03-09T11:15:26.238710"
+      },
+      "BCS401": {
+        "subject": "BCS401",
+        "present": 3,
+        "total": 5,
+        "percentage": 60.0,
+        "last_updated": "2026-03-09T11:15:26.238736"
+      },
+      "BCS402": {
+        "subject": "BCS402",
+        "present": 3,
+        "total": 7,
+        "percentage": 42.86,
+        "last_updated": "2026-03-09T11:15:26.238742"
+      },
+      "BCS403": {
+        "subject": "BCS403",
+        "present": 3,
+        "total": 7,
+        "percentage": 42.86,
+        "last_updated": "2026-03-09T11:15:26.238746"
+      },
+      "BCS405A": {
+        "subject": "BCS405A",
+        "present": 4,
+        "total": 8,
+        "percentage": 50.0,
+        "last_updated": "2026-03-09T11:15:26.238750"
+      },
+      "BCS456C": {
+        "subject": "BCS456C",
+        "present": 0,
+        "total": 2,
+        "percentage": 0.0,
+        "last_updated": "2026-03-09T11:15:26.238753"
+      },
+      "BCSL404": {
+        "subject": "BCSL404",
+        "present": 1,
+        "total": 2,
+        "percentage": 50.0,
+        "last_updated": "2026-03-09T11:15:26.238756"
+      },
+      "BUHK408": {
+        "subject": "BUHK408",
+        "present": 1,
+        "total": 2,
+        "percentage": 50.0,
+        "last_updated": "2026-03-09T11:15:26.238759"
       }
     },
     "8c6a6e25-0182-44c7-ab1d-": {
@@ -583,119 +629,75 @@
       }
     },
     "81b6565d-fbc1-4457-9bb7-": {
+      "2of5classes": {
+        "subject": "2of5classes",
+        "present": 0,
+        "total": 2,
+        "percentage": 0.0,
+        "last_updated": "2026-03-04T11:15:17.808080"
+      },
       "Analysis & Design of Algorithms": {
         "subject": "Analysis & Design of Algorithms",
-        "present": 4,
-        "total": 6,
-        "percentage": 66.67,
-        "last_updated": "2026-03-12T00:28:32.359941"
+        "present": 2,
+        "total": 4,
+        "percentage": 50.0,
+        "last_updated": "2026-03-06T14:09:43.495381"
       },
       "Analysis & Design of Algorithms Lab": {
         "subject": "Analysis & Design of Algorithms Lab",
         "present": 1,
         "total": 2,
         "percentage": 50.0,
-        "last_updated": "2026-03-12T00:28:32.359957"
+        "last_updated": "2026-03-06T14:09:43.495388"
       },
       "Biology For Computer Engineers": {
         "subject": "Biology For Computer Engineers",
-        "present": 2,
-        "total": 3,
-        "percentage": 66.67,
-        "last_updated": "2026-03-12T00:28:32.359960"
+        "present": 1,
+        "total": 2,
+        "percentage": 50.0,
+        "last_updated": "2026-03-06T14:09:43.495394"
       },
       "Database Management Systems": {
         "subject": "Database Management Systems",
-        "present": 5,
-        "total": 9,
-        "percentage": 55.56,
-        "last_updated": "2026-03-12T00:28:32.359961"
-      },
-      "Discrete Mathematical Structures": {
-        "subject": "Discrete Mathematical Structures",
-        "present": 5,
-        "total": 9,
-        "percentage": 55.56,
-        "last_updated": "2026-03-12T00:28:32.359963"
-      },
-      "Microcontrollers": {
-        "subject": "Microcontrollers",
-        "present": 5,
-        "total": 9,
-        "percentage": 55.56,
-        "last_updated": "2026-03-12T00:28:32.359964"
-      },
-      "UI/UX": {
-        "subject": "UI/UX",
-        "present": 1,
-        "total": 3,
+        "present": 2,
+        "total": 6,
         "percentage": 33.33,
-        "last_updated": "2026-03-12T00:28:32.359966"
+        "last_updated": "2026-03-06T14:09:43.495400"
+      },
+      "Discrete Mathematical Structures": {
+        "subject": "Discrete Mathematical Structures",
+        "present": 4,
+        "total": 8,
+        "percentage": 50.0,
+        "last_updated": "2026-03-06T14:09:43.495405"
+      },
+      "Microcontrollers": {
+        "subject": "Microcontrollers",
+        "present": 3,
+        "total": 7,
+        "percentage": 42.86,
+        "last_updated": "2026-03-06T14:09:43.495411"
       },
       "Universal human values course": {
         "subject": "Universal human values course",
         "present": 1,
         "total": 2,
         "percentage": 50.0,
-        "last_updated": "2026-03-12T00:28:32.359968"
-      }
-    },
-    "bf562b77-03ce-4e61-a846-": {
-      "Analysis & Design of Algorithms": {
-        "subject": "Analysis & Design of Algorithms",
-        "present": 4,
-        "total": 6,
-        "percentage": 66.67,
-        "last_updated": "2026-03-11T12:26:13.347685"
+        "last_updated": "2026-03-06T14:09:43.495416"
       },
-      "Analysis & Design of Algorithms Lab": {
-        "subject": "Analysis & Design of Algorithms Lab",
-        "present": 2,
-        "total": 3,
-        "percentage": 66.67,
-        "last_updated": "2026-03-11T12:26:13.347707"
-      },
-      "Biology For Computer Engineers": {
-        "subject": "Biology For Computer Engineers",
-        "present": 3,
-        "total": 3,
-        "percentage": 100.0,
-        "last_updated": "2026-03-11T12:26:13.347715"
-      },
-      "Database Management Systems": {
-        "subject": "Database Management Systems",
-        "present": 5,
-        "total": 8,
-        "percentage": 62.5,
-        "last_updated": "2026-03-11T12:26:13.347720"
-      },
-      "Discrete Mathematical Structures": {
-        "subject": "Discrete Mathematical Structures",
-        "present": 6,
-        "total": 9,
-        "percentage": 66.67,
-        "last_updated": "2026-03-11T12:26:13.347725"
-      },
-      "Microcontrollers": {
-        "subject": "Microcontrollers",
-        "present": 6,
-        "total": 8,
-        "percentage": 75.0,
-        "last_updated": "2026-03-11T12:26:13.347730"
-      },
-      "UI/UX": {
-        "subject": "UI/UX",
-        "present": 2,
-        "total": 3,
-        "percentage": 66.67,
-        "last_updated": "2026-03-11T12:26:13.347736"
-      },
-      "Universal human values course": {
-        "subject": "Universal human values course",
-        "present": 2,
+      "2of6classes": {
+        "subject": "2of6classes",
+        "present": 0,
         "total": 2,
-        "percentage": 100.0,
-        "last_updated": "2026-03-11T12:26:13.347741"
+        "percentage": 0.0,
+        "last_updated": "2026-03-06T09:41:06.754275"
+      },
+      "3of7classes": {
+        "subject": "3of7classes",
+        "present": 0,
+        "total": 2,
+        "percentage": 0.0,
+        "last_updated": "2026-03-06T14:09:43.495358"
       }
     }
   },
@@ -1639,12 +1641,17 @@
         ]
       },
       {
-        "scraped_at": "2026-03-09T12:12:25.029060",
+        "scraped_at": "2026-03-09T11:05:23.444845",
         "subject_count": 8,
         "total_present": 16,
         "total_classes": 35,
         "overall_percentage": 45.71,
         "subjects_snapshot": [
+          {
+            "subject": "3of7classes",
+            "present": 0,
+            "total": 2
+          },
           {
             "subject": "Analysis & Design of Algorithms",
             "present": 3,
@@ -1676,11 +1683,6 @@
             "total": 7
           },
           {
-            "subject": "UI/UX",
-            "present": 0,
-            "total": 2
-          },
-          {
             "subject": "Universal human values course",
             "present": 1,
             "total": 2
@@ -1688,399 +1690,100 @@
         ]
       },
       {
-        "scraped_at": "2026-03-09T20:50:52.880648",
+        "scraped_at": "2026-03-09T11:13:17.992473",
         "subject_count": 8,
-        "total_present": 19,
-        "total_classes": 38,
-        "overall_percentage": 50.0,
+        "total_present": 16,
+        "total_classes": 35,
+        "overall_percentage": 45.71,
         "subjects_snapshot": [
           {
-            "subject": "Analysis & Design of Algorithms",
-            "present": 4,
-            "total": 6
-          },
-          {
-            "subject": "Analysis & Design of Algorithms Lab",
+            "subject": "BBOC407",
             "present": 1,
             "total": 2
           },
           {
-            "subject": "Biology For Computer Engineers",
-            "present": 2,
-            "total": 3
+            "subject": "BCS401",
+            "present": 3,
+            "total": 5
           },
           {
-            "subject": "Database Management Systems",
-            "present": 4,
-            "total": 8
-          },
-          {
-            "subject": "Discrete Mathematical Structures",
-            "present": 4,
-            "total": 8
-          },
-          {
-            "subject": "Microcontrollers",
+            "subject": "BCS402",
             "present": 3,
             "total": 7
           },
           {
-            "subject": "UI/UX",
-            "present": 0,
-            "total": 2
-          },
-          {
-            "subject": "Universal human values course",
-            "present": 1,
-            "total": 2
-          }
-        ]
-      },
-      {
-        "scraped_at": "2026-03-09T21:01:22.399222",
-        "subject_count": 8,
-        "total_present": 19,
-        "total_classes": 38,
-        "overall_percentage": 50.0,
-        "subjects_snapshot": [
-          {
-            "subject": "Analysis & Design of Algorithms",
-            "present": 4,
-            "total": 6
-          },
-          {
-            "subject": "Analysis & Design of Algorithms Lab",
-            "present": 1,
-            "total": 2
-          },
-          {
-            "subject": "Biology For Computer Engineers",
-            "present": 2,
-            "total": 3
-          },
-          {
-            "subject": "Database Management Systems",
-            "present": 4,
-            "total": 8
-          },
-          {
-            "subject": "Discrete Mathematical Structures",
-            "present": 4,
-            "total": 8
-          },
-          {
-            "subject": "Microcontrollers",
+            "subject": "BCS403",
             "present": 3,
             "total": 7
           },
           {
-            "subject": "UI/UX",
+            "subject": "BCS405A",
+            "present": 4,
+            "total": 8
+          },
+          {
+            "subject": "BCS456C",
             "present": 0,
             "total": 2
           },
           {
-            "subject": "Universal human values course",
+            "subject": "BCSL404",
+            "present": 1,
+            "total": 2
+          },
+          {
+            "subject": "BUHK408",
             "present": 1,
             "total": 2
           }
         ]
       },
       {
-        "scraped_at": "2026-03-09T21:56:30.987417",
+        "scraped_at": "2026-03-09T11:15:26.238772",
         "subject_count": 8,
-        "total_present": 19,
-        "total_classes": 38,
-        "overall_percentage": 50.0,
+        "total_present": 16,
+        "total_classes": 35,
+        "overall_percentage": 45.71,
         "subjects_snapshot": [
           {
-            "subject": "Analysis & Design of Algorithms",
-            "present": 4,
-            "total": 6
-          },
-          {
-            "subject": "Analysis & Design of Algorithms Lab",
+            "subject": "BBOC407",
             "present": 1,
             "total": 2
           },
           {
-            "subject": "Biology For Computer Engineers",
-            "present": 2,
-            "total": 3
+            "subject": "BCS401",
+            "present": 3,
+            "total": 5
           },
           {
-            "subject": "Database Management Systems",
-            "present": 4,
-            "total": 8
-          },
-          {
-            "subject": "Discrete Mathematical Structures",
-            "present": 4,
-            "total": 8
-          },
-          {
-            "subject": "Microcontrollers",
+            "subject": "BCS402",
             "present": 3,
             "total": 7
           },
           {
-            "subject": "UI/UX",
+            "subject": "BCS403",
+            "present": 3,
+            "total": 7
+          },
+          {
+            "subject": "BCS405A",
+            "present": 4,
+            "total": 8
+          },
+          {
+            "subject": "BCS456C",
             "present": 0,
             "total": 2
           },
           {
-            "subject": "Universal human values course",
-            "present": 1,
-            "total": 2
-          }
-        ]
-      },
-      {
-        "scraped_at": "2026-03-10T12:03:51.872796",
-        "subject_count": 8,
-        "total_present": 19,
-        "total_classes": 38,
-        "overall_percentage": 50.0,
-        "subjects_snapshot": [
-          {
-            "subject": "Analysis & Design of Algorithms",
-            "present": 4,
-            "total": 6
-          },
-          {
-            "subject": "Analysis & Design of Algorithms Lab",
+            "subject": "BCSL404",
             "present": 1,
             "total": 2
           },
           {
-            "subject": "Biology For Computer Engineers",
-            "present": 2,
-            "total": 3
-          },
-          {
-            "subject": "Database Management Systems",
-            "present": 4,
-            "total": 8
-          },
-          {
-            "subject": "Discrete Mathematical Structures",
-            "present": 4,
-            "total": 8
-          },
-          {
-            "subject": "Microcontrollers",
-            "present": 3,
-            "total": 7
-          },
-          {
-            "subject": "UI/UX",
-            "present": 0,
-            "total": 2
-          },
-          {
-            "subject": "Universal human values course",
+            "subject": "BUHK408",
             "present": 1,
             "total": 2
-          }
-        ]
-      },
-      {
-        "scraped_at": "2026-03-10T22:31:05.749249",
-        "subject_count": 8,
-        "total_present": 22,
-        "total_classes": 41,
-        "overall_percentage": 53.66,
-        "subjects_snapshot": [
-          {
-            "subject": "Analysis & Design of Algorithms",
-            "present": 4,
-            "total": 6
-          },
-          {
-            "subject": "Analysis & Design of Algorithms Lab",
-            "present": 1,
-            "total": 2
-          },
-          {
-            "subject": "Biology For Computer Engineers",
-            "present": 2,
-            "total": 3
-          },
-          {
-            "subject": "Database Management Systems",
-            "present": 4,
-            "total": 8
-          },
-          {
-            "subject": "Discrete Mathematical Structures",
-            "present": 5,
-            "total": 9
-          },
-          {
-            "subject": "Microcontrollers",
-            "present": 4,
-            "total": 8
-          },
-          {
-            "subject": "UI/UX",
-            "present": 1,
-            "total": 3
-          },
-          {
-            "subject": "Universal human values course",
-            "present": 1,
-            "total": 2
-          }
-        ]
-      },
-      {
-        "scraped_at": "2026-03-11T11:10:39.056872",
-        "subject_count": 8,
-        "total_present": 22,
-        "total_classes": 41,
-        "overall_percentage": 53.66,
-        "subjects_snapshot": [
-          {
-            "subject": "Analysis & Design of Algorithms",
-            "present": 4,
-            "total": 6
-          },
-          {
-            "subject": "Analysis & Design of Algorithms Lab",
-            "present": 1,
-            "total": 2
-          },
-          {
-            "subject": "Biology For Computer Engineers",
-            "present": 2,
-            "total": 3
-          },
-          {
-            "subject": "Database Management Systems",
-            "present": 4,
-            "total": 8
-          },
-          {
-            "subject": "Discrete Mathematical Structures",
-            "present": 5,
-            "total": 9
-          },
-          {
-            "subject": "Microcontrollers",
-            "present": 4,
-            "total": 8
-          },
-          {
-            "subject": "UI/UX",
-            "present": 1,
-            "total": 3
-          },
-          {
-            "subject": "Universal human values course",
-            "present": 1,
-            "total": 2
-          }
-        ]
-      },
-      {
-        "scraped_at": "2026-03-16T12:25:12.235150",
-        "subject_count": 8,
-        "total_present": 28,
-        "total_classes": 55,
-        "overall_percentage": 50.91,
-        "subjects_snapshot": [
-          {
-            "subject": "Analysis & Design of Algorithms",
-            "present": 4,
-            "total": 7
-          },
-          {
-            "subject": "Analysis & Design of Algorithms Lab",
-            "present": 1,
-            "total": 4
-          },
-          {
-            "subject": "Biology For Computer Engineers",
-            "present": 3,
-            "total": 4
-          },
-          {
-            "subject": "Database Management Systems",
-            "present": 6,
-            "total": 12
-          },
-          {
-            "subject": "Discrete Mathematical Structures",
-            "present": 6,
-            "total": 11
-          },
-          {
-            "subject": "Microcontrollers",
-            "present": 6,
-            "total": 11
-          },
-          {
-            "subject": "UI/UX",
-            "present": 1,
-            "total": 3
-          },
-          {
-            "subject": "Universal human values course",
-            "present": 1,
-            "total": 3
-          }
-        ]
-      },
-      {
-        "scraped_at": "2026-03-21T23:29:20.299803",
-        "subject_count": 9,
-        "total_present": 37,
-        "total_classes": 65,
-        "overall_percentage": 56.92,
-        "subjects_snapshot": [
-          {
-            "subject": "Analysis & Design of Algorithms",
-            "present": 6,
-            "total": 9
-          },
-          {
-            "subject": "Analysis & Design of Algorithms Lab",
-            "present": 1,
-            "total": 4
-          },
-          {
-            "subject": "Biology For Computer Engineers",
-            "present": 3,
-            "total": 4
-          },
-          {
-            "subject": "Database Management Systems",
-            "present": 9,
-            "total": 15
-          },
-          {
-            "subject": "Discrete Mathematical Structures",
-            "present": 7,
-            "total": 13
-          },
-          {
-            "subject": "Forum Activity",
-            "present": 1,
-            "total": 1
-          },
-          {
-            "subject": "Microcontrollers",
-            "present": 7,
-            "total": 12
-          },
-          {
-            "subject": "UI/UX",
-            "present": 2,
-            "total": 4
-          },
-          {
-            "subject": "Universal human values course",
-            "present": 1,
-            "total": 3
           }
         ]
       }
@@ -3071,155 +2774,6 @@
             "total": 2
           }
         ]
-      },
-      {
-        "scraped_at": "2026-03-09T21:56:29.291260",
-        "subject_count": 8,
-        "total_present": 19,
-        "total_classes": 38,
-        "overall_percentage": 50.0,
-        "subjects_snapshot": [
-          {
-            "subject": "Analysis & Design of Algorithms",
-            "present": 4,
-            "total": 6
-          },
-          {
-            "subject": "Analysis & Design of Algorithms Lab",
-            "present": 1,
-            "total": 2
-          },
-          {
-            "subject": "Biology For Computer Engineers",
-            "present": 2,
-            "total": 3
-          },
-          {
-            "subject": "Database Management Systems",
-            "present": 4,
-            "total": 8
-          },
-          {
-            "subject": "Discrete Mathematical Structures",
-            "present": 4,
-            "total": 8
-          },
-          {
-            "subject": "Microcontrollers",
-            "present": 3,
-            "total": 7
-          },
-          {
-            "subject": "UI/UX",
-            "present": 0,
-            "total": 2
-          },
-          {
-            "subject": "Universal human values course",
-            "present": 1,
-            "total": 2
-          }
-        ]
-      },
-      {
-        "scraped_at": "2026-03-12T00:28:32.359976",
-        "subject_count": 8,
-        "total_present": 24,
-        "total_classes": 43,
-        "overall_percentage": 55.81,
-        "subjects_snapshot": [
-          {
-            "subject": "Analysis & Design of Algorithms",
-            "present": 4,
-            "total": 6
-          },
-          {
-            "subject": "Analysis & Design of Algorithms Lab",
-            "present": 1,
-            "total": 2
-          },
-          {
-            "subject": "Biology For Computer Engineers",
-            "present": 2,
-            "total": 3
-          },
-          {
-            "subject": "Database Management Systems",
-            "present": 5,
-            "total": 9
-          },
-          {
-            "subject": "Discrete Mathematical Structures",
-            "present": 5,
-            "total": 9
-          },
-          {
-            "subject": "Microcontrollers",
-            "present": 5,
-            "total": 9
-          },
-          {
-            "subject": "UI/UX",
-            "present": 1,
-            "total": 3
-          },
-          {
-            "subject": "Universal human values course",
-            "present": 1,
-            "total": 2
-          }
-        ]
-      }
-    ],
-    "bf562b77-03ce-4e61-a846-": [
-      {
-        "scraped_at": "2026-03-11T12:26:13.347776",
-        "subject_count": 8,
-        "total_present": 30,
-        "total_classes": 42,
-        "overall_percentage": 71.43,
-        "subjects_snapshot": [
-          {
-            "subject": "Analysis & Design of Algorithms",
-            "present": 4,
-            "total": 6
-          },
-          {
-            "subject": "Analysis & Design of Algorithms Lab",
-            "present": 2,
-            "total": 3
-          },
-          {
-            "subject": "Biology For Computer Engineers",
-            "present": 3,
-            "total": 3
-          },
-          {
-            "subject": "Database Management Systems",
-            "present": 5,
-            "total": 8
-          },
-          {
-            "subject": "Discrete Mathematical Structures",
-            "present": 6,
-            "total": 9
-          },
-          {
-            "subject": "Microcontrollers",
-            "present": 6,
-            "total": 8
-          },
-          {
-            "subject": "UI/UX",
-            "present": 2,
-            "total": 3
-          },
-          {
-            "subject": "Universal human values course",
-            "present": 2,
-            "total": 2
-          }
-        ]
       }
     ]
   },
@@ -3236,811 +2790,46 @@
     ],
     "81b6565d-fbc1-4457-9bb7-": [
       {
-        "subject": "Discrete Mathematical Structures",
-        "day": 0,
-        "start_time": null,
-        "end_time": null,
-        "event_type": "Lecture",
-        "color_class": "chart-7",
-        "order": 0,
-        "raw_text": "Lecture - Discrete Mathematical Structures",
-        "created_at": "2026-03-13T17:39:20.317366"
-      },
-      {
-        "subject": "Analysis & Design of Algorithms",
-        "day": 0,
-        "start_time": null,
-        "end_time": null,
-        "event_type": "Lecture",
-        "color_class": "chart-7",
-        "order": 1,
-        "raw_text": "Lecture - Analysis & Design of Algorithms",
-        "created_at": "2026-03-13T17:39:20.317378"
-      },
-      {
         "subject": "Database Management Systems",
-        "day": 0,
-        "start_time": null,
-        "end_time": null,
-        "event_type": "Lab",
-        "color_class": "chart-9",
-        "order": 2,
-        "raw_text": "Lab - Database Management Systems",
-        "created_at": "2026-03-13T17:39:20.317380"
-      },
-      {
-        "subject": "Biology For Computer Engineers",
-        "day": 0,
-        "start_time": null,
-        "end_time": null,
-        "event_type": "Lecture",
-        "color_class": "chart-7",
-        "order": 3,
-        "raw_text": "Lecture - Biology For Computer Engineers",
-        "created_at": "2026-03-13T17:39:20.317381"
-      },
-      {
-        "subject": "Employability Skills-SST",
-        "day": 1,
-        "start_time": null,
-        "end_time": null,
-        "event_type": "Lecture",
-        "color_class": "chart-7",
-        "order": 0,
-        "raw_text": "Lecture - Employability Skills-SST",
-        "created_at": "2026-03-13T17:39:20.317383"
-      },
-      {
-        "subject": "Discrete Mathematical Structures",
-        "day": 1,
-        "start_time": null,
-        "end_time": null,
-        "event_type": "Lecture",
-        "color_class": "chart-7",
-        "order": 1,
-        "raw_text": "Lecture - Discrete Mathematical Structures",
-        "created_at": "2026-03-13T17:39:20.317384"
-      },
-      {
-        "subject": "Microcontrollers",
-        "day": 1,
-        "start_time": null,
-        "end_time": null,
-        "event_type": "Lecture",
-        "color_class": "chart-7",
-        "order": 2,
-        "raw_text": "Lecture - Microcontrollers",
-        "created_at": "2026-03-13T17:39:20.317385"
-      },
-      {
-        "subject": "UI/UX",
-        "day": 1,
-        "start_time": null,
-        "end_time": null,
-        "event_type": "Lecture",
-        "color_class": "chart-7",
-        "order": 3,
-        "raw_text": "Lecture - UI/UX",
-        "created_at": "2026-03-13T17:39:20.317386"
-      },
-      {
-        "subject": "Analysis & Design of Algorithms",
-        "day": 2,
-        "start_time": null,
-        "end_time": null,
-        "event_type": "Lecture",
-        "color_class": "chart-7",
-        "order": 0,
-        "raw_text": "Lecture - Analysis & Design of Algorithms",
-        "created_at": "2026-03-13T17:39:20.317388"
-      },
-      {
-        "subject": "Discrete Mathematical Structures",
-        "day": 2,
-        "start_time": null,
-        "end_time": null,
-        "event_type": "Lecture",
-        "color_class": "chart-7",
-        "order": 1,
-        "raw_text": "Lecture - Discrete Mathematical Structures",
-        "created_at": "2026-03-13T17:39:20.317389"
-      },
-      {
-        "subject": "Microcontrollers",
-        "day": 2,
-        "start_time": null,
-        "end_time": null,
-        "event_type": "Lecture",
-        "color_class": "chart-7",
-        "order": 2,
-        "raw_text": "Lecture - Microcontrollers",
-        "created_at": "2026-03-13T17:39:20.317390"
-      },
-      {
-        "subject": "Database Management Systems",
-        "day": 2,
-        "start_time": null,
-        "end_time": null,
-        "event_type": "Lecture",
-        "color_class": "chart-7",
-        "order": 3,
-        "raw_text": "Lecture - Database Management Systems",
-        "created_at": "2026-03-13T17:39:20.317391"
-      },
-      {
-        "subject": "Database Management Systems",
-        "day": 3,
-        "start_time": null,
-        "end_time": null,
-        "event_type": "Lecture",
-        "color_class": "chart-7",
-        "order": 0,
-        "raw_text": "Lecture - Database Management Systems",
-        "created_at": "2026-03-13T17:39:20.317392"
-      },
-      {
-        "subject": "Discrete Mathematical Structures",
-        "day": 3,
-        "start_time": null,
-        "end_time": null,
-        "event_type": "Lecture",
-        "color_class": "chart-7",
-        "order": 1,
-        "raw_text": "Lecture - Discrete Mathematical Structures",
-        "created_at": "2026-03-13T17:39:20.317394"
-      },
-      {
-        "subject": "Microcontrollers",
-        "day": 3,
-        "start_time": null,
-        "end_time": null,
-        "event_type": "Lab",
-        "color_class": "chart-9",
-        "order": 2,
-        "raw_text": "Lab - Microcontrollers",
-        "created_at": "2026-03-13T17:39:20.317395"
-      },
-      {
-        "subject": "Analysis & Design of Algorithms Lab",
-        "day": 3,
-        "start_time": null,
-        "end_time": null,
-        "event_type": "Lab",
-        "color_class": "chart-9",
-        "order": 3,
-        "raw_text": "Lab - Analysis & Design of Algorithms Lab",
-        "created_at": "2026-03-13T17:39:20.317396"
-      },
-      {
-        "subject": "Microcontrollers",
         "day": 4,
-        "start_time": null,
-        "end_time": null,
-        "event_type": "Lecture",
-        "color_class": "chart-7",
-        "order": 0,
-        "raw_text": "Lecture - Microcontrollers",
-        "created_at": "2026-03-13T17:39:20.317398"
-      },
-      {
-        "subject": "Biology For Computer Engineers",
-        "day": 4,
-        "start_time": null,
-        "end_time": null,
-        "event_type": "Lecture",
-        "color_class": "chart-7",
-        "order": 1,
-        "raw_text": "Lecture - Biology For Computer Engineers",
-        "created_at": "2026-03-13T17:39:20.317399"
-      },
-      {
-        "subject": "Discrete Mathematical Structures",
-        "day": 4,
-        "start_time": null,
-        "end_time": null,
-        "event_type": "Lecture",
-        "color_class": "chart-7",
-        "order": 2,
-        "raw_text": "Lecture - Discrete Mathematical Structures",
-        "created_at": "2026-03-13T17:39:20.317400"
-      },
-      {
-        "subject": "Universal human values course",
-        "day": 4,
-        "start_time": null,
-        "end_time": null,
-        "event_type": "Lecture",
-        "color_class": "chart-7",
-        "order": 3,
-        "raw_text": "Lecture - Universal human values course",
-        "created_at": "2026-03-13T17:39:20.317402"
-      },
-      {
-        "subject": "2 more...",
-        "day": 4,
-        "start_time": null,
-        "end_time": null,
-        "event_type": "Lecture",
-        "color_class": "chart-7",
-        "order": 4,
-        "raw_text": "2 more...",
-        "created_at": "2026-03-13T17:39:20.317403"
+        "start_time": "2:30",
+        "end_time": "3:30",
+        "raw_text": "Database Management Systems (2:30-3:30)",
+        "created_at": "2026-03-06T14:10:46.627097"
       }
     ],
     "035c304a-dc40-4065-b0fc-": [
       {
-        "subject": "Employability Skills-SST",
-        "day": 0,
-        "start_time": null,
-        "end_time": null,
-        "event_type": "Lecture",
-        "color_class": "chart-7",
-        "order": 0,
-        "raw_text": "Lecture - Employability Skills-SST",
-        "created_at": "2026-03-21T23:29:34.467072"
-      },
-      {
-        "subject": "Discrete Mathematical Structures",
-        "day": 0,
-        "start_time": null,
-        "end_time": null,
-        "event_type": "Lecture",
-        "color_class": "chart-7",
-        "order": 1,
-        "raw_text": "Lecture - Discrete Mathematical Structures",
-        "created_at": "2026-03-21T23:29:34.467084"
-      },
-      {
         "subject": "Analysis & Design of Algorithms",
-        "day": 0,
-        "start_time": null,
-        "end_time": null,
-        "event_type": "Lecture",
-        "color_class": "chart-7",
-        "order": 2,
-        "raw_text": "Lecture - Analysis & Design of Algorithms",
-        "created_at": "2026-03-21T23:29:34.467087"
-      },
-      {
-        "subject": "Database Management Systems",
-        "day": 0,
-        "start_time": null,
-        "end_time": null,
-        "event_type": "Lab",
-        "color_class": "chart-9",
-        "order": 3,
-        "raw_text": "Lab - Database Management Systems",
-        "created_at": "2026-03-21T23:29:34.467088"
-      },
-      {
-        "subject": "1 more...",
-        "day": 0,
-        "start_time": null,
-        "end_time": null,
-        "event_type": "Lecture",
-        "color_class": "chart-7",
-        "order": 4,
-        "raw_text": "1 more...",
-        "created_at": "2026-03-21T23:29:34.467089"
-      },
-      {
-        "subject": "Employability Skills-SST",
-        "day": 1,
-        "start_time": null,
-        "end_time": null,
-        "event_type": "Lecture",
-        "color_class": "chart-7",
-        "order": 0,
-        "raw_text": "Lecture - Employability Skills-SST",
-        "created_at": "2026-03-21T23:29:34.467091"
-      },
-      {
-        "subject": "Discrete Mathematical Structures",
-        "day": 1,
-        "start_time": null,
-        "end_time": null,
-        "event_type": "Lecture",
-        "color_class": "chart-7",
-        "order": 1,
-        "raw_text": "Lecture - Discrete Mathematical Structures",
-        "created_at": "2026-03-21T23:29:34.467092"
-      },
-      {
-        "subject": "Microcontrollers",
-        "day": 1,
-        "start_time": null,
-        "end_time": null,
-        "event_type": "Lecture",
-        "color_class": "chart-7",
-        "order": 2,
-        "raw_text": "Lecture - Microcontrollers",
-        "created_at": "2026-03-21T23:29:34.467093"
-      },
-      {
-        "subject": "UI/UX",
-        "day": 1,
-        "start_time": null,
-        "end_time": null,
-        "event_type": "Lecture",
-        "color_class": "chart-7",
-        "order": 3,
-        "raw_text": "Lecture - UI/UX",
-        "created_at": "2026-03-21T23:29:34.467095"
-      },
-      {
-        "subject": "Analysis & Design of Algorithms",
-        "day": 2,
-        "start_time": null,
-        "end_time": null,
-        "event_type": "Lecture",
-        "color_class": "chart-7",
-        "order": 0,
-        "raw_text": "Lecture - Analysis & Design of Algorithms",
-        "created_at": "2026-03-21T23:29:34.467096"
-      },
-      {
-        "subject": "Discrete Mathematical Structures",
-        "day": 2,
-        "start_time": null,
-        "end_time": null,
-        "event_type": "Lecture",
-        "color_class": "chart-7",
-        "order": 1,
-        "raw_text": "Lecture - Discrete Mathematical Structures",
-        "created_at": "2026-03-21T23:29:34.467097"
-      },
-      {
-        "subject": "Database Management Systems",
-        "day": 2,
-        "start_time": null,
-        "end_time": null,
-        "event_type": "Lecture",
-        "color_class": "chart-7",
-        "order": 2,
-        "raw_text": "Lecture - Database Management Systems",
-        "created_at": "2026-03-21T23:29:34.467098"
-      },
-      {
-        "subject": "Database Management Systems",
-        "day": 2,
-        "start_time": null,
-        "end_time": null,
-        "event_type": "Lecture",
-        "color_class": "chart-7",
-        "order": 3,
-        "raw_text": "Lecture - Database Management Systems",
-        "created_at": "2026-03-21T23:29:34.467100"
-      },
-      {
-        "subject": "1 more...",
-        "day": 2,
-        "start_time": null,
-        "end_time": null,
-        "event_type": "Lecture",
-        "color_class": "chart-7",
-        "order": 4,
-        "raw_text": "1 more...",
-        "created_at": "2026-03-21T23:29:34.467101"
-      },
-      {
-        "subject": "Database Management Systems",
-        "day": 3,
-        "start_time": null,
-        "end_time": null,
-        "event_type": "Lecture",
-        "color_class": "chart-7",
-        "order": 0,
-        "raw_text": "Lecture - Database Management Systems",
-        "created_at": "2026-03-21T23:29:34.467102"
-      },
-      {
-        "subject": "Discrete Mathematical Structures",
-        "day": 3,
-        "start_time": null,
-        "end_time": null,
-        "event_type": "Lecture",
-        "color_class": "chart-7",
-        "order": 1,
-        "raw_text": "Lecture - Discrete Mathematical Structures",
-        "created_at": "2026-03-21T23:29:34.467103"
-      },
-      {
-        "subject": "Microcontrollers",
-        "day": 3,
-        "start_time": null,
-        "end_time": null,
-        "event_type": "Lab",
-        "color_class": "chart-9",
-        "order": 2,
-        "raw_text": "Lab - Microcontrollers",
-        "created_at": "2026-03-21T23:29:34.467105"
-      },
-      {
-        "subject": "Analysis & Design of Algorithms Lab",
-        "day": 3,
-        "start_time": null,
-        "end_time": null,
-        "event_type": "Lab",
-        "color_class": "chart-9",
-        "order": 3,
-        "raw_text": "Lab - Analysis & Design of Algorithms Lab",
-        "created_at": "2026-03-21T23:29:34.467106"
-      },
-      {
-        "subject": "Microcontrollers",
-        "day": 4,
-        "start_time": null,
-        "end_time": null,
-        "event_type": "Lecture",
-        "color_class": "chart-7",
-        "order": 0,
-        "raw_text": "Lecture - Microcontrollers",
-        "created_at": "2026-03-21T23:29:34.467107"
-      },
-      {
-        "subject": "Biology For Computer Engineers",
-        "day": 4,
-        "start_time": null,
-        "end_time": null,
-        "event_type": "Lecture",
-        "color_class": "chart-7",
-        "order": 1,
-        "raw_text": "Lecture - Biology For Computer Engineers",
-        "created_at": "2026-03-21T23:29:34.467108"
-      },
-      {
-        "subject": "Discrete Mathematical Structures",
-        "day": 4,
-        "start_time": null,
-        "end_time": null,
-        "event_type": "Lecture",
-        "color_class": "chart-7",
-        "order": 2,
-        "raw_text": "Lecture - Discrete Mathematical Structures",
-        "created_at": "2026-03-21T23:29:34.467110"
-      },
-      {
-        "subject": "Universal human values course",
-        "day": 4,
-        "start_time": null,
-        "end_time": null,
-        "event_type": "Lecture",
-        "color_class": "chart-7",
-        "order": 3,
-        "raw_text": "Lecture - Universal human values course",
-        "created_at": "2026-03-21T23:29:34.467111"
-      },
-      {
-        "subject": "2 more...",
-        "day": 4,
-        "start_time": null,
-        "end_time": null,
-        "event_type": "Lecture",
-        "color_class": "chart-7",
-        "order": 4,
-        "raw_text": "2 more...",
-        "created_at": "2026-03-21T23:29:34.467112"
-      },
-      {
-        "subject": "Database Management Systems",
         "day": 5,
-        "start_time": null,
-        "end_time": null,
-        "event_type": "Lecture",
-        "color_class": "chart-7",
-        "order": 0,
-        "raw_text": "Lecture - Database Management Systems",
-        "created_at": "2026-03-21T23:29:34.467113"
+        "start_time": "09:00",
+        "end_time": "10:00",
+        "raw_text": "Analysis & Design of Algorithms (09:00-10:00)",
+        "created_at": "2026-03-06T15:22:35.230477"
       },
       {
-        "subject": "Discrete Mathematical Structures",
+        "subject": "1st saturday - DH",
         "day": 5,
-        "start_time": null,
-        "end_time": null,
-        "event_type": "Lecture",
-        "color_class": "chart-7",
-        "order": 1,
-        "raw_text": "Lecture - Discrete Mathematical Structures",
-        "created_at": "2026-03-21T23:29:34.467114"
+        "start_time": "09:00",
+        "end_time": "10:00",
+        "raw_text": "1st saturday - DH (09:00-10:00)",
+        "created_at": "2026-03-09T11:05:34.559615"
       },
       {
-        "subject": "Microcontrollers",
+        "subject": "1st saturday - DH",
         "day": 5,
-        "start_time": null,
-        "end_time": null,
-        "event_type": "Lab",
-        "color_class": "chart-9",
-        "order": 2,
-        "raw_text": "Lab - Microcontrollers",
-        "created_at": "2026-03-21T23:29:34.467116"
+        "start_time": "09:00",
+        "end_time": "10:00",
+        "raw_text": "1st saturday - DH (09:00-10:00)",
+        "created_at": "2026-03-09T11:13:29.058845"
       },
       {
-        "subject": "Analysis & Design of Algorithms Lab",
+        "subject": "1st saturday - DH",
         "day": 5,
-        "start_time": null,
-        "end_time": null,
-        "event_type": "Lab",
-        "color_class": "chart-9",
-        "order": 3,
-        "raw_text": "Lab - Analysis & Design of Algorithms Lab",
-        "created_at": "2026-03-21T23:29:34.467117"
-      }
-    ],
-    "bf562b77-03ce-4e61-a846-": [
-      {
-        "subject": "Discrete Mathematical Structures",
-        "day": 0,
-        "start_time": null,
-        "end_time": null,
-        "event_type": "Lecture",
-        "color_class": "chart-7",
-        "order": 0,
-        "raw_text": "Lecture - Discrete Mathematical Structures",
-        "created_at": "2026-03-11T12:26:31.253231"
-      },
-      {
-        "subject": "Analysis & Design of Algorithms",
-        "day": 0,
-        "start_time": null,
-        "end_time": null,
-        "event_type": "Lecture",
-        "color_class": "chart-7",
-        "order": 1,
-        "raw_text": "Lecture - Analysis & Design of Algorithms",
-        "created_at": "2026-03-11T12:26:31.253250"
-      },
-      {
-        "subject": "Database Management Systems",
-        "day": 0,
-        "start_time": null,
-        "end_time": null,
-        "event_type": "Lab",
-        "color_class": "chart-9",
-        "order": 2,
-        "raw_text": "Lab - Database Management Systems",
-        "created_at": "2026-03-11T12:26:31.253254"
-      },
-      {
-        "subject": "Biology For Computer Engineers",
-        "day": 0,
-        "start_time": null,
-        "end_time": null,
-        "event_type": "Lecture",
-        "color_class": "chart-7",
-        "order": 3,
-        "raw_text": "Lecture - Biology For Computer Engineers",
-        "created_at": "2026-03-11T12:26:31.253257"
-      },
-      {
-        "subject": "Analysis & Design of Algorithms Lab",
-        "day": 1,
-        "start_time": null,
-        "end_time": null,
-        "event_type": "Lab",
-        "color_class": "chart-9",
-        "order": 0,
-        "raw_text": "Lab - Analysis & Design of Algorithms Lab",
-        "created_at": "2026-03-11T12:26:31.253259"
-      },
-      {
-        "subject": "Employability Skills-SST",
-        "day": 1,
-        "start_time": null,
-        "end_time": null,
-        "event_type": "Lecture",
-        "color_class": "chart-7",
-        "order": 1,
-        "raw_text": "Lecture - Employability Skills-SST",
-        "created_at": "2026-03-11T12:26:31.253262"
-      },
-      {
-        "subject": "Discrete Mathematical Structures",
-        "day": 1,
-        "start_time": null,
-        "end_time": null,
-        "event_type": "Lecture",
-        "color_class": "chart-7",
-        "order": 2,
-        "raw_text": "Lecture - Discrete Mathematical Structures",
-        "created_at": "2026-03-11T12:26:31.253264"
-      },
-      {
-        "subject": "Microcontrollers",
-        "day": 1,
-        "start_time": null,
-        "end_time": null,
-        "event_type": "Lecture",
-        "color_class": "chart-7",
-        "order": 3,
-        "raw_text": "Lecture - Microcontrollers",
-        "created_at": "2026-03-11T12:26:31.253266"
-      },
-      {
-        "subject": "1 more...",
-        "day": 1,
-        "start_time": null,
-        "end_time": null,
-        "event_type": "Lecture",
-        "color_class": "chart-7",
-        "order": 4,
-        "raw_text": "1 more...",
-        "created_at": "2026-03-11T12:26:31.253269"
-      },
-      {
-        "subject": "Analysis & Design of Algorithms",
-        "day": 2,
-        "start_time": null,
-        "end_time": null,
-        "event_type": "Lecture",
-        "color_class": "chart-7",
-        "order": 0,
-        "raw_text": "Lecture - Analysis & Design of Algorithms",
-        "created_at": "2026-03-11T12:26:31.253271"
-      },
-      {
-        "subject": "Discrete Mathematical Structures",
-        "day": 2,
-        "start_time": null,
-        "end_time": null,
-        "event_type": "Lecture",
-        "color_class": "chart-7",
-        "order": 1,
-        "raw_text": "Lecture - Discrete Mathematical Structures",
-        "created_at": "2026-03-11T12:26:31.253273"
-      },
-      {
-        "subject": "Microcontrollers",
-        "day": 2,
-        "start_time": null,
-        "end_time": null,
-        "event_type": "Lecture",
-        "color_class": "chart-7",
-        "order": 2,
-        "raw_text": "Lecture - Microcontrollers",
-        "created_at": "2026-03-11T12:26:31.253276"
-      },
-      {
-        "subject": "Database Management Systems",
-        "day": 2,
-        "start_time": null,
-        "end_time": null,
-        "event_type": "Lecture",
-        "color_class": "chart-7",
-        "order": 3,
-        "raw_text": "Lecture - Database Management Systems",
-        "created_at": "2026-03-11T12:26:31.253278"
-      },
-      {
-        "subject": "1 more...",
-        "day": 2,
-        "start_time": null,
-        "end_time": null,
-        "event_type": "Lecture",
-        "color_class": "chart-7",
-        "order": 4,
-        "raw_text": "1 more...",
-        "created_at": "2026-03-11T12:26:31.253280"
-      },
-      {
-        "subject": "Database Management Systems",
-        "day": 3,
-        "start_time": null,
-        "end_time": null,
-        "event_type": "Lecture",
-        "color_class": "chart-7",
-        "order": 0,
-        "raw_text": "Lecture - Database Management Systems",
-        "created_at": "2026-03-11T12:26:31.253283"
-      },
-      {
-        "subject": "Discrete Mathematical Structures",
-        "day": 3,
-        "start_time": null,
-        "end_time": null,
-        "event_type": "Lecture",
-        "color_class": "chart-7",
-        "order": 1,
-        "raw_text": "Lecture - Discrete Mathematical Structures",
-        "created_at": "2026-03-11T12:26:31.253285"
-      },
-      {
-        "subject": "Microcontrollers",
-        "day": 3,
-        "start_time": null,
-        "end_time": null,
-        "event_type": "Lab",
-        "color_class": "chart-9",
-        "order": 2,
-        "raw_text": "Lab - Microcontrollers",
-        "created_at": "2026-03-11T12:26:31.253287"
-      },
-      {
-        "subject": "Microcontrollers",
-        "day": 4,
-        "start_time": null,
-        "end_time": null,
-        "event_type": "Lecture",
-        "color_class": "chart-7",
-        "order": 0,
-        "raw_text": "Lecture - Microcontrollers",
-        "created_at": "2026-03-11T12:26:31.253290"
-      },
-      {
-        "subject": "Biology For Computer Engineers",
-        "day": 4,
-        "start_time": null,
-        "end_time": null,
-        "event_type": "Lecture",
-        "color_class": "chart-7",
-        "order": 1,
-        "raw_text": "Lecture - Biology For Computer Engineers",
-        "created_at": "2026-03-11T12:26:31.253292"
-      },
-      {
-        "subject": "Discrete Mathematical Structures",
-        "day": 4,
-        "start_time": null,
-        "end_time": null,
-        "event_type": "Lecture",
-        "color_class": "chart-7",
-        "order": 2,
-        "raw_text": "Lecture - Discrete Mathematical Structures",
-        "created_at": "2026-03-11T12:26:31.253295"
-      },
-      {
-        "subject": "Universal human values course",
-        "day": 4,
-        "start_time": null,
-        "end_time": null,
-        "event_type": "Lecture",
-        "color_class": "chart-7",
-        "order": 3,
-        "raw_text": "Lecture - Universal human values course",
-        "created_at": "2026-03-11T12:26:31.253297"
-      },
-      {
-        "subject": "2 more...",
-        "day": 4,
-        "start_time": null,
-        "end_time": null,
-        "event_type": "Lecture",
-        "color_class": "chart-7",
-        "order": 4,
-        "raw_text": "2 more...",
-        "created_at": "2026-03-11T12:26:31.253299"
-      },
-      {
-        "subject": "Database Management Systems",
-        "day": 5,
-        "start_time": null,
-        "end_time": null,
-        "event_type": "Lecture",
-        "color_class": "chart-7",
-        "order": 0,
-        "raw_text": "Lecture - Database Management Systems",
-        "created_at": "2026-03-11T12:26:31.253302"
-      },
-      {
-        "subject": "Discrete Mathematical Structures",
-        "day": 5,
-        "start_time": null,
-        "end_time": null,
-        "event_type": "Lecture",
-        "color_class": "chart-7",
-        "order": 1,
-        "raw_text": "Lecture - Discrete Mathematical Structures",
-        "created_at": "2026-03-11T12:26:31.253304"
-      },
-      {
-        "subject": "Microcontrollers",
-        "day": 5,
-        "start_time": null,
-        "end_time": null,
-        "event_type": "Lab",
-        "color_class": "chart-9",
-        "order": 2,
-        "raw_text": "Lab - Microcontrollers",
-        "created_at": "2026-03-11T12:26:31.253306"
+        "start_time": "09:00",
+        "end_time": "10:00",
+        "raw_text": "1st saturday - DH (09:00-10:00)",
+        "created_at": "2026-03-09T11:15:37.267095"
       }
     ]
   }

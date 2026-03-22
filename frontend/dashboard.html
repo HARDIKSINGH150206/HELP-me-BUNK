@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Help Me Bunk</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f5f7fa;
+            color: #333;
+        }
+
+        header {
+            background: white;
+            border-bottom: 1px solid #e0e0e0;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        header h1 {
+            color: #667eea;
+            font-size: 1.5rem;
+        }
+
+        .logout-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .logout-btn:hover {
+            background: #c0392b;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .card h2 {
+            margin-bottom: 1rem;
+            color: #667eea;
+            font-size: 1.3rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #555;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .attendance-data {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .stat-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-box h3 {
+            font-size: 0.9rem;
+            font-weight: 500;
+            opacity: 0.9;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-box p {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #667eea;
+        }
+
+        .error {
+            background: #fee;
+            border: 1px solid #fcc;
+            color: #c33;
+            padding: 1rem;
+            border-radius: 5px;
+            margin-bottom: 1rem;
+        }
+
+        .success {
+            background: #efe;
+            border: 1px solid #cfc;
+            color: #3c3;
+            padding: 1rem;
+            border-radius: 5px;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Help Me Bunk - Dashboard</h1>
+        <button class="logout-btn" id="logoutBtn">Logout</button>
+    </header>
+
+    <div class="container">
+        <div id="error" class="error" style="display: none;"></div>
+        <div id="success" class="success" style="display: none;"></div>
+
+        <div class="card">
+            <h2>Configuration</h2>
+            <div id="configContent">
+                <div class="loading">Loading configuration...</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Latest Attendance Data</h2>
+            <div id="attendanceContent">
+                <div class="loading">Loading attendance data...</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Scrape Attendance</h2>
+            <button id="scrapeBtn" disabled>Scrape Now</button>
+            <div id="scrapeStatus" style="margin-top: 1rem;"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import apiClient from './src/api.js';
+
+        const errorDiv = document.getElementById('error');
+        const successDiv = document.getElementById('success');
+        const logoutBtn = document.getElementById('logoutBtn');
+
+        function showError(message) {
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+
+        function showSuccess(message) {
+            successDiv.textContent = message;
+            successDiv.style.display = 'block';
+            setTimeout(() => {
+                successDiv.style.display = 'none';
+            }, 3000);
+        }
+
+        // Load configuration
+        async function loadConfig() {
+            try {
+                const config = await apiClient.getConfig();
+                const content = document.getElementById('configContent');
+                
+                if (config.config) {
+                    content.innerHTML = `
+                        <div class="form-group">
+                            <label>Portal URL: <strong>${config.config.portal_url || 'Not set'}</strong></label>
+                        </div>
+                        <div class="form-group">
+                            <label>Username: <strong>${config.config.username || 'Not set'}</strong></label>
+                        </div>
+                        <div class="form-group">
+                            <label>Status: <strong>${config.config.status || 'Active'}</strong></label>
+                        </div>
+                    `;
+                    document.getElementById('scrapeBtn').disabled = false;
+                } else {
+                    content.innerHTML = '<p>No configuration found. Please set it up first.</p>';
+                }
+            } catch (error) {
+                showError('Failed to load configuration');
+                console.error(error);
+            }
+        }
+
+        // Load attendance data
+        async function loadAttendance() {
+            try {
+                const data = await apiClient.getLatestData();
+                const content = document.getElementById('attendanceContent');
+                
+                if (data.data && data.data.length > 0) {
+                    const html = data.data.map(subject => `
+                        <div class="stat-box">
+                            <h3>${subject.subject_code}</h3>
+                            <p>${subject.percentage}%</p>
+                        </div>
+                    `).join('');
+                    content.innerHTML = `<div class="attendance-data">${html}</div>`;
+                } else {
+                    content.innerHTML = '<p>No attendance data available. Scrape your attendance first.</p>';
+                }
+            } catch (error) {
+                showError('Failed to load attendance data');
+                console.error(error);
+            }
+        }
+
+        // Logout
+        logoutBtn.addEventListener('click', async () => {
+            try {
+                await apiClient.logout();
+                window.location.href = '/index.html';
+            } catch (error) {
+                showError('Logout failed');
+                console.error(error);
+            }
+        });
+
+        // Scrape attendance
+        document.getElementById('scrapeBtn').addEventListener('click', async () => {
+            const btn = document.getElementById('scrapeBtn');
+            const status = document.getElementById('scrapeStatus');
+            
+            btn.disabled = true;
+            status.innerHTML = '<div class="loading">Scraping attendance...</div>';
+
+            try {
+                const result = await apiClient.scrape({ action: 'scrape' });
+                if (result.success) {
+                    showSuccess('Attendance scraped successfully!');
+                    setTimeout(() => {
+                        loadAttendance();
+                    }, 1000);
+                } else {
+                    showError(result.message || 'Scraping failed');
+                }
+                status.innerHTML = '';
+            } catch (error) {
+                showError('Scraping error: ' + error.message);
+                status.innerHTML = '';
+            } finally {
+                btn.disabled = false;
+            }
+        });
+
+        // Initial load
+        loadConfig();
+        loadAttendance();
+    </script>
+</body>
+</html>

@@ -2,6 +2,7 @@ selenium
 webdriver-manager
 colorama
 flask
+flask-cors
 werkzeug
 pymongo[srv]
 python-dotenv

@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 load_dotenv()  # Load environment variables from .env file
 
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for
+from flask_cors import CORS
 from functools import wraps
 import json
 import os
@@ -27,11 +28,124 @@ except ImportError:
 from attendance_calculator import AttendanceCalculator
 import threading
 import time
+import html
+import logging
+
+# ===== INPUT VALIDATION & SANITIZATION =====
+
+def sanitize_string(value, max_length=255, allow_unicode=True):
+    """Sanitize string input to prevent XSS
+    
+    Args:
+        value: Input string to sanitize
+        max_length: Maximum allowed length (truncates if exceeded)
+        allow_unicode: Whether to allow Unicode characters
+    
+    Returns:
+        Sanitized string or None if invalid
+    """
+    if not isinstance(value, str):
+        return None
+    
+    # Remove leading/trailing whitespace
+    value = value.strip()
+    
+    if not value:
+        return None
+    
+    # Truncate if too long
+    if len(value) > max_length:
+        value = value[:max_length]
+    
+    # Check for suspicious patterns BEFORE escaping
+    # (so we catch real dangerous code, not escaped versions)
+    dangerous_patterns = ['<script', 'javascript:', 'onclick', 'onerror', 'onload', '<%', '%>']
+    if any(pattern in value.lower() for pattern in dangerous_patterns):
+        return None
+    
+    # Escape HTML entities
+    value = html.escape(value)
+    
+    return value
+
+def validate_email(email):
+    """Validate email format"""
+    if not email or not isinstance(email, str):
+        return False
+    pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    return re.match(pattern, email.strip()) is not None
+
+def validate_integer(value, min_val=None, max_val=None):
+    """Validate integer input"""
+    try:
+        val = int(value)
+        if min_val is not None and val < min_val:
+            return None
+        if max_val is not None and val > max_val:
+            return None
+        return val
+    except (TypeError, ValueError):
+        return None
+
+def validate_day_of_week(day):
+    """Validate day of week (0=Monday, 6=Sunday)"""
+    val = validate_integer(day, min_val=0, max_val=6)
+    return val
+
+def validate_time_format(time_str):
+    """Validate HH:MM time format"""
+    if not time_str or not isinstance(time_str, str):
+        return False
+    pattern = r'^([0-1][0-9]|2[0-3]):[0-5][0-9]$'
+    return re.match(pattern, time_str.strip()) is not None
+
+def validate_percentage(value):
+    """Validate percentage (0-100)
+    
+    Args:
+        value: Value to validate as percentage
+    
+    Returns:
+        Integer value (0-100) if valid, None otherwise
+    """
+    return validate_integer(value, min_val=0, max_val=100)
+
+def require_json(f):
+    """Decorator to ensure request has JSON content-type"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not request.is_json:
+            return jsonify({'error': 'Content-Type must be application/json'}), 400
+        return f(*args, **kwargs)
+    return decorated_function
+
+# Setup logging
+logging.basicConfig(
+    level=os.getenv('LOG_LEVEL', 'INFO'),
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
 import database as db
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'your-secret-key-change-this-in-production')
 app.permanent_session_lifetime = timedelta(days=7)
+
+# Enable CORS for Vercel frontend and development
+CORS(app, 
+    resources={r"/api/*": {
+        "origins": [
+            os.environ.get('FRONTEND_URL', 'http://localhost:3000'),
+            "http://localhost:3000",
+            "http://localhost:5000"
+        ],
+        "methods": ["GET", "POST", "OPTIONS"],
+        "allow_headers": ["Content-Type"],
+        "supports_credentials": True
+    }},
+    allow_headers=['Content-Type']
+)
 
 # Initialize database
 try:
@@ -604,29 +718,39 @@ def update_attendance():
     """Manually update attendance data for a subject"""
     try:
         user_id = session['user_id']
-        data = request.json
-        subject_name = data.get('subject')
-        new_present = data.get('present')
-        new_total = data.get('total')
+        data = request.json or {}
         
-        if not subject_name or new_present is None or new_total is None:
-            return jsonify({'error': 'Subject name, present, and total are required'}), 400
+        # Validate and sanitize input
+        subject_name = sanitize_string(data.get('subject', '').strip(), max_length=255)
+        new_present = validate_integer(data.get('present'), min_val=0, max_val=999)
+        new_total = validate_integer(data.get('total'), min_val=1, max_val=999)
         
-        new_present = int(new_present)
-        new_total = int(new_total)
+        # Validate required fields
+        if not subject_name:
+            return jsonify({'error': 'Subject name is required'}), 400
+        
+        if new_present is None:
+            return jsonify({'error': 'Present must be a valid integer (0-999)'}), 400
+        
+        if new_total is None:
+            return jsonify({'error': 'Total must be a valid integer (1-999)'}), 400
         
         if new_total <= 0:
             return jsonify({'error': 'Total must be greater than 0'}), 400
         
-        if new_present < 0 or new_present > new_total:
-            return jsonify({'error': 'Present must be between 0 and total'}), 400
+        if new_present > new_total:
+            return jsonify({'error': 'Present classes cannot exceed total classes'}), 400
+        
+        # Log the action
+        app.logger.info(f"User {user_id} updating attendance for {subject_name}: {new_present}/{new_total}")
         
         # Update in database
         db.update_subject(user_id, subject_name, new_present, new_total)
         
         return jsonify({'success': True, 'message': f'Updated {subject_name}'})
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        app.logger.error(f"Error updating attendance: {e}")
+        return jsonify({'error': 'Failed to update attendance'}), 500
 
 
 @app.route('/api/add-subject', methods=['POST'])
@@ -635,13 +759,28 @@ def add_subject_route():
     """Add a new subject to attendance data"""
     try:
         user_id = session['user_id']
-        data = request.json
-        subject_name = data.get('subject')
-        present = int(data.get('present', 0))
-        total = int(data.get('total', 0))
+        data = request.json or {}
         
-        if not subject_name or total <= 0:
-            return jsonify({'error': 'Valid subject name and total required'}), 400
+        # Validate and sanitize input
+        subject_name = sanitize_string(data.get('subject', '').strip(), max_length=255)
+        present = validate_integer(data.get('present', 0), min_val=0, max_val=999)
+        total = validate_integer(data.get('total', 0), min_val=1, max_val=999)
+        
+        # Validate required fields
+        if not subject_name:
+            return jsonify({'error': 'Subject name is required and must be 1-255 characters'}), 400
+        
+        if present is None or total is None:
+            return jsonify({'error': 'Present and total must be valid integers (0-999)'}), 400
+        
+        if total <= 0:
+            return jsonify({'error': 'Total classes must be greater than 0'}), 400
+        
+        if present > total:
+            return jsonify({'error': 'Present classes cannot exceed total classes'}), 400
+        
+        # Log the action
+        app.logger.info(f"User {user_id} adding subject: {subject_name} ({present}/{total})")
         
         result = db.add_subject(user_id, subject_name, present, total)
         
@@ -650,7 +789,8 @@ def add_subject_route():
         else:
             return jsonify({'error': result['error']}), 400
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        app.logger.error(f"Error adding subject: {e}")
+        return jsonify({'error': 'Failed to add subject'}), 500
 
 
 @app.route('/api/delete-subject', methods=['POST'])
@@ -659,10 +799,14 @@ def delete_subject_route():
     """Delete a subject from attendance data"""
     try:
         user_id = session['user_id']
-        subject_name = request.json.get('subject')
+        data = request.json or {}
+        subject_name = sanitize_string(data.get('subject', '').strip(), max_length=255)
         
         if not subject_name:
-            return jsonify({'error': 'Subject name required'}), 400
+            return jsonify({'error': 'Subject name is required'}), 400
+        
+        # Log the action
+        app.logger.info(f"User {user_id} deleting subject: {subject_name}")
         
         deleted = db.delete_subject(user_id, subject_name)
         
@@ -671,7 +815,8 @@ def delete_subject_route():
         else:
             return jsonify({'error': f'Subject "{subject_name}" not found'}), 404
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        app.logger.error(f"Error deleting subject: {e}")
+        return jsonify({'error': 'Failed to delete subject'}), 500
 
 
 # ============== TIMETABLE ROUTES ==============
@@ -871,25 +1016,41 @@ def add_timetable_entry_route():
     """Add a timetable entry manually"""
     try:
         user_id = session['user_id']
-        data = request.json
+        data = request.json or {}
         
-        subject = data.get('subject', '').strip()
-        day = data.get('day')  # 0-6
+        # Validate and sanitize input
+        subject = sanitize_string(data.get('subject', '').strip(), max_length=255)
+        day = validate_day_of_week(data.get('day'))
         start_time = data.get('start_time', '').strip() or None
         end_time = data.get('end_time', '').strip() or None
-        event_type = data.get('event_type', 'Lecture')
-        color_class = data.get('color_class', 'chart-7')
-        order = data.get('order', 0)
+        event_type = sanitize_string(data.get('event_type', 'Lecture'), max_length=50)
+        color_class = sanitize_string(data.get('color_class', 'chart-7'), max_length=50)
+        order = validate_integer(data.get('order', 0), min_val=0, max_val=999)
         
-        if not subject or day is None:
-            return jsonify({'error': 'Subject and day are required'}), 400
+        # Validate required fields
+        if not subject:
+            return jsonify({'error': 'Subject name is required and must be 1-255 characters'}), 400
+        
+        if day is None:
+            return jsonify({'error': 'Day must be 0-6 (Monday-Sunday)'}), 400
+        
+        # Validate time formats if provided
+        if start_time and not validate_time_format(start_time):
+            return jsonify({'error': 'Invalid start_time format. Use HH:MM'}), 400
+        
+        if end_time and not validate_time_format(end_time):
+            return jsonify({'error': 'Invalid end_time format. Use HH:MM'}), 400
+        
+        # Log the action
+        app.logger.info(f"User {user_id} adding timetable entry: {subject} on day {day}")
         
         result = db.add_timetable_entry(user_id, subject, day, start_time, end_time,
                                          event_type=event_type, color_class=color_class, order=order)
         return jsonify(result)
         
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        app.logger.error(f"Error adding timetable entry: {e}")
+        return jsonify({'error': 'Failed to add timetable entry'}), 500
 
 
 @app.route('/api/timetable/delete', methods=['POST'])
@@ -898,14 +1059,25 @@ def delete_timetable_entry_route():
     """Delete a timetable entry"""
     try:
         user_id = session['user_id']
-        data = request.json
+        data = request.json or {}
         
-        subject = data.get('subject')
-        day = data.get('day')
-        order = data.get('order')
+        # Validate and sanitize input
+        subject = sanitize_string(data.get('subject', '').strip(), max_length=255)
+        day = validate_day_of_week(data.get('day'))
+        order = validate_integer(data.get('order'), min_val=0, max_val=999)
         
-        if not subject or day is None:
-            return jsonify({'error': 'Subject and day required'}), 400
+        # Validate required fields
+        if not subject:
+            return jsonify({'error': 'Subject name is required'}), 400
+        
+        if day is None:
+            return jsonify({'error': 'Day must be 0-6 (Monday-Sunday)'}), 400
+        
+        if order is None:
+            return jsonify({'error': 'Order must be a valid number (0-999)'}), 400
+        
+        # Log the action
+        app.logger.info(f"User {user_id} deleting timetable entry: {subject} on day {day}")
         
         deleted = db.delete_timetable_entry(user_id, subject, day, order=order)
         
@@ -915,7 +1087,8 @@ def delete_timetable_entry_route():
             return jsonify({'error': 'Entry not found'}), 404
             
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        app.logger.error(f"Error deleting timetable entry: {e}")
+        return jsonify({'error': 'Failed to delete timetable entry'}), 500
 
 
 @app.route('/api/timetable/clear', methods=['POST'])
