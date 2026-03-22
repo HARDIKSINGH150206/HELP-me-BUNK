@@ -499,8 +499,8 @@ def reset_config():
 
 
 @app.route('/api/latest-data')
+@cache.cached(timeout=300)  # Cache for 5 minutes
 @login_required
-@cache.cached(timeout=300, query_string=True)  # Cache for 5 minutes
 def get_latest_data():
     """Get the most recent attendance data for the logged-in user"""
     try:
@@ -862,8 +862,8 @@ def delete_subject_route():
 # ============== TIMETABLE ROUTES ==============
 
 @app.route('/api/timetable')
+@cache.cached(timeout=600)  # Cache for 10 minutes
 @login_required
-@cache.cached(timeout=600, query_string=True)  # Cache for 10 minutes
 def get_timetable_route():
     """Get user's timetable with bunkability info"""
     try:
