@@ -114,10 +114,6 @@ def get_db():
                 MONGODB_URI, 
                 serverSelectionTimeoutMS=5000,
                 connectTimeoutMS=5000,
-                socketTimeoutMS=5000,
-                maxPoolSize=100,              # Connection pooling: max 100 connections
-                minPoolSize=10,                # Min 10 connections to keep alive
-                maxIdleTimeMS=45000,           # Close idle connections after 45s
                 tls=True,
                 tlsCAFile=certifi.where()
             )
@@ -144,31 +140,13 @@ def init_db():
         return
     
     if db is not None:
-        from pymongo import MongoClient, ASCENDING, DESCENDING
-        
-        # Create comprehensive indexes for better query performance
-        # Users
+        from pymongo import MongoClient
+        # Create indexes for better query performance
         db.users.create_index('username', unique=True)
-        db.users.create_index('_id')
-        
-        # Attendance
-        db.attendance.create_index([('user_id', ASCENDING), ('subject', ASCENDING)], unique=True)
-        db.attendance.create_index('user_id')
-        db.attendance.create_index('subject')
-        db.attendance.create_index('last_updated', expireAfterSeconds=2592000)  # Auto-delete after 30 days
-        
-        # Scrape History
+        db.attendance.create_index([('user_id', 1), ('subject', 1)], unique=True)
         db.scrape_history.create_index('user_id')
-        db.scrape_history.create_index('timestamp')
-        db.scrape_history.create_index([('user_id', ASCENDING), ('timestamp', DESCENDING)])
-        
-        # Timetable
-        db.timetable.create_index([('user_id', ASCENDING), ('day', ASCENDING)])
-        db.timetable.create_index([('user_id', ASCENDING), ('day', ASCENDING), ('start_time', ASCENDING)])
-        db.timetable.create_index('user_id')
-        db.timetable.create_index('subject')
-        
-        print("✓ MongoDB initialized with optimized indexes")
+        db.timetable.create_index([('user_id', 1), ('day', 1), ('start_time', 1)])
+        print("✓ MongoDB initialized")
 
 
 # ============== USER FUNCTIONS ==============

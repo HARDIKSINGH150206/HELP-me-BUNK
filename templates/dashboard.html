@@ -45,34 +45,6 @@
             --radius-sm: 8px;
         }
 
-        /* Light mode theme */
-        [data-theme="light"] {
-            --bg-base: #ffffff;
-            --bg-layer-1: rgba(255, 255, 255, 0.6);
-            --bg-layer-2: rgba(0, 0, 0, 0.03);
-            --bg-layer-3: rgba(0, 0, 0, 0.06);
-            --bg-glass: rgba(255, 255, 255, 0.6);
-            --text-primary: #1f2937;
-            --text-secondary: rgba(31, 41, 55, 0.7);
-            --text-muted: rgba(31, 41, 55, 0.4);
-            --accent: #6b7280;
-            --accent-light: #1f2937;
-            --accent-glow: rgba(107, 114, 128, 0.1);
-            --accent-subtle: rgba(107, 114, 128, 0.04);
-            --glow-1: rgba(107, 114, 128, 0.05);
-            --glow-2: rgba(55, 65, 81, 0.05);
-            --success: #059669;
-            --success-bg: rgba(5, 150, 105, 0.1);
-            --warning: #d97706;
-            --warning-bg: rgba(217, 119, 6, 0.1);
-            --danger: #dc2626;
-            --danger-bg: rgba(220, 38, 38, 0.1);
-            --border: rgba(0, 0, 0, 0.05);
-            --border-hover: rgba(0, 0, 0, 0.15);
-            --shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
-            --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(0, 0, 0, 0.02);
-        }
-
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             background-color: var(--bg-base);
@@ -1151,66 +1123,18 @@
         }
 
         /* Subject color palette - vibrant colors for dark theme */
-        .subject-color-0 {
-            --subj-color: #6366f1;
-        }
-
-        /* Indigo */
-        .subject-color-1 {
-            --subj-color: #f59e0b;
-        }
-
-        /* Amber */
-        .subject-color-2 {
-            --subj-color: #10b981;
-        }
-
-        /* Emerald */
-        .subject-color-3 {
-            --subj-color: #ef4444;
-        }
-
-        /* Red */
-        .subject-color-4 {
-            --subj-color: #8b5cf6;
-        }
-
-        /* Violet */
-        .subject-color-5 {
-            --subj-color: #06b6d4;
-        }
-
-        /* Cyan */
-        .subject-color-6 {
-            --subj-color: #ec4899;
-        }
-
-        /* Pink */
-        .subject-color-7 {
-            --subj-color: #84cc16;
-        }
-
-        /* Lime */
-        .subject-color-8 {
-            --subj-color: #f97316;
-        }
-
-        /* Orange */
-        .subject-color-9 {
-            --subj-color: #14b8a6;
-        }
-
-        /* Teal */
-        .subject-color-10 {
-            --subj-color: #a78bfa;
-        }
-
-        /* Purple */
-        .subject-color-11 {
-            --subj-color: #fb923c;
-        }
-
-        /* Light Orange */
+        .subject-color-0 { --subj-color: #6366f1; } /* Indigo */
+        .subject-color-1 { --subj-color: #f59e0b; } /* Amber */
+        .subject-color-2 { --subj-color: #10b981; } /* Emerald */
+        .subject-color-3 { --subj-color: #ef4444; } /* Red */
+        .subject-color-4 { --subj-color: #8b5cf6; } /* Violet */
+        .subject-color-5 { --subj-color: #06b6d4; } /* Cyan */
+        .subject-color-6 { --subj-color: #ec4899; } /* Pink */
+        .subject-color-7 { --subj-color: #84cc16; } /* Lime */
+        .subject-color-8 { --subj-color: #f97316; } /* Orange */
+        .subject-color-9 { --subj-color: #14b8a6; } /* Teal */
+        .subject-color-10 { --subj-color: #a78bfa; } /* Purple */
+        .subject-color-11 { --subj-color: #fb923c; } /* Light Orange */
 
         .calendar-actions {
             display: flex;
@@ -1911,9 +1835,6 @@
                     </div>
                 </div>
             </div>
-            <button class="btn btn-ghost" onclick="toggleDarkMode()" title="Toggle theme" id="themeToggle">
-                <i class="fas fa-moon"></i>
-            </button>
             <button class="btn btn-ghost" onclick="logout()" title="Logout">
                 <i class="fas fa-sign-out-alt"></i>
                 Logout
@@ -2538,55 +2459,6 @@
                 }
             }
         }
-
-        // Dark Mode Toggle Function
-        function toggleDarkMode() {
-            const html = document.documentElement;
-            const currentTheme = html.getAttribute('data-theme') || 'dark';
-            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            
-            // Update HTML attribute
-            html.setAttribute('data-theme', newTheme);
-            
-            // Update icon
-            const themeToggle = document.getElementById('themeToggle');
-            if (themeToggle) {
-                const icon = themeToggle.querySelector('i');
-                if (newTheme === 'light') {
-                    icon.classList.remove('fa-moon');
-                    icon.classList.add('fa-sun');
-                    themeToggle.title = 'Switch to dark mode';
-                } else {
-                    icon.classList.remove('fa-sun');
-                    icon.classList.add('fa-moon');
-                    themeToggle.title = 'Switch to light mode';
-                }
-            }
-            
-            // Save preference to localStorage
-            localStorage.setItem('theme-preference', newTheme);
-        }
-
-        // Initialize theme on page load
-        function initializeTheme() {
-            const savedTheme = localStorage.getItem('theme-preference') || 'dark';
-            document.documentElement.setAttribute('data-theme', savedTheme);
-            
-            const themeToggle = document.getElementById('themeToggle');
-            if (themeToggle) {
-                const icon = themeToggle.querySelector('i');
-                if (savedTheme === 'light') {
-                    icon.classList.remove('fa-moon');
-                    icon.classList.add('fa-sun');
-                } else {
-                    icon.classList.remove('fa-sun');
-                    icon.classList.add('fa-moon');
-                }
-            }
-        }
-        
-        // Initialize theme when DOM is ready
-        document.addEventListener('DOMContentLoaded', initializeTheme);
 
         // View Toggle Function
         function showView(view, btn) {

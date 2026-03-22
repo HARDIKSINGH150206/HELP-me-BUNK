@@ -10,10 +10,6 @@ load_dotenv()  # Load environment variables from .env file
 
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for
 from flask_cors import CORS
-from flask_caching import Cache
-from flask_limiter import Limiter
-from flask_limiter.util import get_remote_address
-from flask_wtf.csrf import CSRFProtect
 from functools import wraps
 import json
 import os
@@ -158,39 +154,6 @@ except Exception as e:
     print(f"⚠ Database initialization failed: {e}")
     print("  Make sure MONGODB_URI environment variable is set correctly")
 
-# ===== CACHING SETUP (Redis) =====
-cache_config = {
-    'CACHE_TYPE': 'redis',
-    'CACHE_REDIS_URL': os.getenv('REDIS_URL', 'redis://localhost:6379/0'),
-    'CACHE_DEFAULT_TIMEOUT': 300,  # 5 minutes default
-    'CACHE_KEY_PREFIX': 'help_me_bunk:'
-}
-
-try:
-    cache = Cache(app, config=cache_config)
-    print("✓ Redis caching enabled")
-except Exception as e:
-    # Fallback to simple in-memory cache if Redis not available
-    cache_config['CACHE_TYPE'] = 'simple'
-    cache = Cache(app, config=cache_config)
-    print("⚠ Redis not available, using in-memory cache")
-
-# ===== RATE LIMITING SETUP =====
-limiter = Limiter(
-    app=app,
-    key_func=get_remote_address,
-    default_limits=["200 per day", "50 per hour"],
-    storage_uri=os.getenv('REDIS_URL', 'memory://'),
-    storage_options={'DIFFERENTIATOR': lambda: session.get('user_id', 'anonymous')}
-)
-print("✓ Rate limiting enabled (200/day, 50/hour per user)")
-
-# ===== CSRF PROTECTION SETUP =====
-csrf = CSRFProtect(app)
-# Disable CSRF for API endpoints (we use session-based auth instead)
-csrf.exempt('api')
-print("✓ CSRF protection enabled")
-
 # Initialize auto-sync scheduler
 from scheduler import init_scheduler, schedule_user_sync, remove_user_sync, get_user_schedule, shutdown_scheduler
 try:
@@ -226,8 +189,9 @@ def login_required(f):
     return decorated_function
 
 def run_scraper_background(user_id, username, password):
-    """Run scraper in background thread"""
-    from attendance_scraper import AcharyaERPScraper
+    """Run scraper in background thread (now using async HTTP API v2)"""
+    import asyncio
+    from attendance_scraper_v2 import AcharyaScraper
     
     status = get_scraper_status(user_id)
     status['running'] = True
@@ -235,78 +199,66 @@ def run_scraper_background(user_id, username, password):
     status['error'] = None
     status['complete'] = False
     
-    try:
-        scraper = AcharyaERPScraper(username, password)
-        
-        status['progress'] = 'Setting up browser...'
-        scraper.setup_driver()
-        
-        status['progress'] = 'Logging in...'
-        if not scraper.login():
-            status['error'] = 'Login failed'
-            status['running'] = False
-            return
-        
-        status['progress'] = 'Navigating to attendance...'
-        if not scraper.navigate_to_attendance():
-            status['error'] = 'Navigation failed'
-            status['running'] = False
-            return
-        
-        status['progress'] = 'Extracting attendance data...'
-        data = scraper.extract_attendance_data()
-        
-        if data:
-            status['progress'] = 'Saving attendance data...'
-            # Handle new format: data is now {'subjects': [...], 'overall': {...}}
-            if isinstance(data, dict) and 'subjects' in data:
-                subjects_data = data['subjects']
-                overall_data = data.get('overall')
-            else:
-                # Backwards compatibility for old format (list of subjects)
-                subjects_data = data if isinstance(data, list) else []
-                overall_data = None
-            
-            if subjects_data and len(subjects_data) > 0:
-                subjects = []
-                for item in subjects_data:
-                    subjects.append({
-                        'subject': item.get('subject'),
-                        'present': item.get('present', 0),
-                        'total': item.get('total', 0)
-                    })
-                db.save_attendance(user_id, subjects, overall=overall_data)
-                status['progress'] = 'Attendance saved!'
-            else:
-                status['error'] = 'No subject data found'
-        else:
-            status['error'] = 'No attendance data found'
-        
-        # Now extract and save timetable
-        status['progress'] = 'Extracting timetable...'
-        if scraper.navigate_to_calendar():
-            timetable_data = scraper.extract_timetable_data()
-            if timetable_data and len(timetable_data) > 0:
-                status['progress'] = f'Saving {len(timetable_data)} timetable entries...'
+    async def scrape_async():
+        """Async scraping function"""
+        try:
+            async with AcharyaScraper(username, password) as scraper:
+                status['progress'] = 'Logging in...'
+                if not await scraper.login():
+                    status['error'] = 'Login failed'
+                    return
+                
+                status['progress'] = 'Fetching attendance data...'
+                attendance_data = await scraper.get_attendance()
+                
+                if attendance_data and len(attendance_data) > 0:
+                    status['progress'] = 'Saving attendance data...'
+                    # v2 returns list of dict with: subject, present, total, percentage
+                    subjects = []
+                    for item in attendance_data:
+                        subjects.append({
+                            'subject': item.get('subject'),
+                            'present': item.get('present', 0),
+                            'total': item.get('total', 0),
+                            'percentage': item.get('percentage', 0.0)
+                        })
+                    db.save_attendance(user_id, subjects)
+                    status['progress'] = f'Attendance saved! ({len(subjects)} subjects)'
+                else:
+                    status['error'] = 'No attendance data found'
+                    return
+                
+                # Try to get courses/timetable data as replacement for old timetable extraction
+                status['progress'] = 'Fetching courses data...'
                 try:
-                    # Save all timetable entries at once (replaces old data)
-                    db.save_timetable(user_id, timetable_data)
-                    status['progress'] = 'Timetable saved!'
+                    courses_data = await scraper.get_courses()
+                    if courses_data and len(courses_data) > 0:
+                        status['progress'] = f'Saving {len(courses_data)} courses...'
+                        try:
+                            # Save courses as timetable-like data
+                            db.save_timetable(user_id, courses_data)
+                            status['progress'] = 'Courses data saved!'
+                        except Exception as e:
+                            print(f"⚠ Warning: Could not save courses data: {e}")
+                    else:
+                        print("⚠ No courses data found")
                 except Exception as e:
-                    print(f"⚠ Warning: Could not save some timetable entries: {e}")
-            else:
-                print("⚠ No timetable data found")
-        else:
-            print("⚠ Could not navigate to calendar page")
+                    print(f"⚠ Warning: Could not fetch courses: {e}")
+                
+                status['complete'] = True
         
-        status['complete'] = True
-        
-        if scraper.driver:
-            scraper.driver.quit()
-            
+        except Exception as e:
+            status['error'] = str(e)
+            print(f"✗ Scraper error: {e}")
+            import traceback
+            traceback.print_exc()
+    
+    try:
+        # Run async function in sync context using asyncio.run()
+        asyncio.run(scrape_async())
     except Exception as e:
         status['error'] = str(e)
-        print(f"✗ Scraper error: {e}")
+        print(f"✗ Fatal error: {e}")
         import traceback
         traceback.print_exc()
     finally:
@@ -499,7 +451,6 @@ def reset_config():
 
 
 @app.route('/api/latest-data')
-@cache.cached(timeout=300)  # Cache for 5 minutes
 @login_required
 def get_latest_data():
     """Get the most recent attendance data for the logged-in user"""
@@ -630,7 +581,6 @@ def calculate_bunks():
 
 @app.route('/api/scrape', methods=['POST'])
 @login_required
-@limiter.limit("5 per hour")  # Max 5 scrapes per hour per user
 def start_scrape():
     """Start scraping process"""
     try:
@@ -656,7 +606,6 @@ def start_scrape():
 
 @app.route('/api/auto-sync', methods=['POST'])
 @login_required
-@limiter.limit("10 per hour")  # Max 10 manual syncs per hour per user
 def auto_sync():
     """Auto-sync with ERP using stored credentials"""
     try:
@@ -862,7 +811,6 @@ def delete_subject_route():
 # ============== TIMETABLE ROUTES ==============
 
 @app.route('/api/timetable')
-@cache.cached(timeout=600)  # Cache for 10 minutes
 @login_required
 def get_timetable_route():
     """Get user's timetable with bunkability info"""
