@@ -81,24 +81,22 @@ class AcharyaScraper:
         """
         Login to Acharya ERP using HTTP API
         
-        TODO: Confirm the exact login endpoint URL from DevTools > Network tab
-        Try these patterns:
-        1. POST /auth/login
-        2. POST /auth/authenticate
-        3. POST /api/student/login
-        4. Check Frontend XHR calls during manual login
+        VERIFIED API ENDPOINT (from DevTools):
+        POST https://acerp.acharyaerptech.in/api/authenticate
         
-        TODO: Verify exact request body field names from DevTools Request tab
-        Common patterns:
-        - {"username": "...", "password": "..."}
-        - {"email": "...", "password": "..."}
-        - {"studentId": "...", "password": "..."}
-        - {"auid": "...", "password": "..."}
+        Request Fields:
+          - username: student AUID (e.g. AIT24BECS108)
+          - password: ERP password
         
-        TODO: Verify auth response format and where auth token is stored:
-        - In response JSON field like "token", "access_token", "sessionId"?
-        - In Set-Cookie headers (httpx handles automatically)?
-        - In custom headers like "X-Auth-Token"?
+        Response Format:
+          {
+            "success": true,
+            "data": {
+              "token": "eyJhbGc...",
+              "userId": 3741,
+              "userName": "AIT24BECS108"
+            }
+          }
         """
         
         if username:
@@ -110,116 +108,80 @@ class AcharyaScraper:
             await self.init_client()
         
         try:
-            # TODO: Replace with actual login endpoint from DevTools
-            login_endpoints = [
-                f"{self.frontend_url}/api/auth/login",
-                f"{self.frontend_url}/api/login",
-                f"{self.api_base_url}/auth/login",
-                f"{self.api_base_url}/login",
-            ]
+            # VERIFIED endpoint from DevTools
+            endpoint = "https://acerp.acharyaerptech.in/api/authenticate"
             
-            # TODO: Verify correct request body field names
-            request_bodies = [
-                {"username": self.username, "password": self.password},
-                {"email": self.username, "password": self.password},
-                {"studentId": self.username, "password": self.password},
-                {"auid": self.username, "password": self.password},
-            ]
+            request_body = {
+                "username": self.username,
+                "password": self.password,
+            }
             
-            print(f"🔑 Attempting login for user: {self.username}")
-            print(f"   (Will try {len(login_endpoints)} endpoint patterns)")
+            print(f"🔑 Logging in to Acharya ERP")
+            print(f"   Endpoint: {endpoint}")
+            print(f"   User: {self.username}")
             
-            last_error = None
+            response = await self.client.post(endpoint, json=request_body)
             
-            for endpoint_idx, endpoint in enumerate(login_endpoints):
-                for body_idx, body in enumerate(request_bodies):
-                    try:
-                        print(f"   Trying: {endpoint} with {list(body.keys())}")
-                        
-                        response = await self.client.post(endpoint, json=body)
-                        
-                        print(f"   ✓ Response status: {response.status_code}")
-                        
-                        # Handle successful response
-                        if response.status_code in [200, 201]:
-                            response_data = self._safe_parse_json(response.text, endpoint)
-                            
-                            if not response_data:
-                                print(f"   ⚠️  Empty response")
-                                continue
-                            
-                            # TODO: Verify the tokens/session are returned in one of these fields:
-                            self.auth_token = (
-                                response_data.get('token') or 
-                                response_data.get('access_token') or 
-                                response_data.get('sessionId') or 
-                                response_data.get('sid')
-                            )
-                            
-                            # TODO: Verify student ID field name from response
-                            self.student_id = (
-                                response_data.get('studentId') or 
-                                response_data.get('id') or 
-                                response_data.get('auid')
-                            )
-                            
-                            if self.auth_token:
-                                # Set up auth headers for future requests
-                                # TODO: Verify which header format backend expects:
-                                # Option 1: Authorization: Bearer <token>
-                                # Option 2: X-Auth-Token: <token>
-                                # Option 3: Custom header like Authorization: <token>
-                                self.session_headers = {
-                                    'Authorization': f'Bearer {self.auth_token}',
-                                    # 'X-Auth-Token': self.auth_token,  # Alternative
-                                }
-                                
-                                self.logged_in = True
-                                self.session_expired = False
-                                print(f"✓ Login successful!")
-                                print(f"  Auth Token: {self.auth_token[:20]}..." if self.auth_token else "  (Using cookies)")
-                                print(f"  Student ID: {self.student_id}")
-                                return True
-                            
-                            # Fallback: cookies might be set automatically by httpx
-                            if response.status_code == 200:
-                                self.logged_in = True
-                                self.session_expired = False
-                                print(f"✓ Login successful (cookie-based auth)")
-                                return True
-                        
-                        elif response.status_code in [401, 403]:
-                            print(f"   ✗ Unauthorized (401/403) - invalid credentials")
-                            return False
-                        
-                        elif response.status_code >= 500:
-                            print(f"   ✗ Server error ({response.status_code})")
-                            last_error = f"Server error {response.status_code}"
-                            continue
+            print(f"   Response status: {response.status_code}")
+            
+            if response.status_code in [200, 201]:
+                response_data = self._safe_parse_json(response.text, endpoint)
+                
+                if not response_data:
+                    print(f"   ✗ Empty response")
+                    return False
+                
+                # Extract from nested 'data' structure
+                if response_data.get('success') and response_data.get('data'):
+                    data = response_data['data']
                     
-                    except httpx.TimeoutException:
-                        print(f"   ✗ Timeout - server not responding")
-                        last_error = "Timeout"
-                    except httpx.ConnectError:
-                        print(f"   ✗ Connection error - check URL and network")
-                        last_error = "Connection error"
-                    except Exception as e:
-                        print(f"   ✗ Error: {type(e).__name__}: {e}")
-                        last_error = str(e)
+                    # Get token (verified location)
+                    self.auth_token = data.get('token')
+                    
+                    # Get numeric user ID (userId not student_id in login response)
+                    self.student_id = data.get('userId')
+                    
+                    # Also save AUID for reference
+                    self.username = data.get('userName', self.username)
+                    
+                    if self.auth_token:
+                        # Set Bearer token for all future requests
+                        self.session_headers = {
+                            'Authorization': f'Bearer {self.auth_token}',
+                            'Content-Type': 'application/json',
+                        }
+                        
+                        self.logged_in = True
+                        self.session_expired = False
+                        print(f"✓ Login successful!")
+                        print(f"  Token: {self.auth_token[:30]}...")
+                        print(f"  User ID: {self.student_id}")
+                        print(f"  AUID: {self.username}")
+                        return True
+                    else:
+                        print(f"✗ No token in response")
+                        return False
+                else:
+                    print(f"✗ Invalid response structure")
+                    print(f"  Response keys: {list(response_data.keys())}")
+                    return False
             
-            # All attempts failed
-            print(f"\n✗ Login failed after {len(login_endpoints) * len(request_bodies)} attempts")
-            if last_error:
-                print(f"   Last error: {last_error}")
-            print(f"\n→ TODO: Inspect DevTools Network tab during manual login:")
-            print(f"   1. Open DevTools (F12) > Network tab")
-            print(f"   2. Login manually on {self.frontend_url}")
-            print(f"   3. Look for XHR POST request")
-            print(f"   4. Note: URL, Request body fields, Response status, Response fields")
-            return False
+            elif response.status_code in [401, 403]:
+                print(f"✗ Authentication failed (401/403)")
+                print(f"  Invalid credentials or server rejected")
+                return False
+            
+            elif response.status_code >= 500:
+                print(f"✗ Server error ({response.status_code})")
+                return False
+            
+            else:
+                print(f"✗ Unexpected status: {response.status_code}")
+                print(f"  Response: {response.text[:200]}")
+                return False
         
         except Exception as e:
-            print(f"✗ Login exception: {e}")
+            print(f"✗ Login error: {e}")
             import traceback
             traceback.print_exc()
             return False
@@ -276,39 +238,13 @@ class AcharyaScraper:
         """
         Fetch attendance data from Acharya ERP API
         
-        Endpoint: GET https://acerp.acharyaerptech.in/api/attendance/{batch_id}?date=YYYY-MM-DD
+        VERIFIED ENDPOINT (from DevTools):
+        GET https://acerp.acharyaerptech.in/api/academic/students/{student_id}/studentAttendance
         
-        TODO: Verify exact endpoint pattern and required parameters:
-        1. Does batch_id come from student details response?
-        2. What's the exact field name in student response? ("batchId", "batch", etc?)
-        3. Is date parameter required or optional?
-        4. What date format? (YYYY-MM-DD, DD-MM-YYYY, timestamp, etc?)
+        NOTE: Uses numeric student_id (userId from login response, e.g. 3741)
+        NOT the AUID (e.g. AIT24BECS108)
         
-        TODO: Verify the attendance JSON response structure:
-        Response might look like:
-        {
-          "subjects": [
-            {
-              "subjectName": "Mathematics",
-              "courseCode": "BCS401",
-              "present": 23,
-              "total": 53,
-              "percentage": 43.4
-            }
-          ]
-        }
-        OR:
-        {
-          "data": [
-            {
-              "name": "Subject",
-              "attended": 23,
-              "conducted": 53,
-              "percent": 43.4
-            }
-          ]
-        }
-        OR fully different structure
+        Response: Expected to contain attendance data for all enrolled subjects
         """
         
         if not self.logged_in or self.session_expired:
@@ -316,34 +252,18 @@ class AcharyaScraper:
             return []
         
         try:
-            # Get batch_id from student details if not already set
-            if not self.batch_id:
-                student_details = await self.get_student_details()
-                # TODO: Verify field name for batch ID in response
-                self.batch_id = (
-                    student_details.get('batchId') or 
-                    student_details.get('batch_id') or 
-                    student_details.get('batch') or 
-                    student_details.get('id')
-                )
-            
-            if not self.batch_id:
-                print("✗ Could not determine batch ID")
+            # Use numeric student_id (userId from login response)
+            if not self.student_id:
+                print("✗ Student ID not set - login first")
                 return []
             
-            # TODO: Verify date parameter format and necessity
-            endpoint = f"{self.api_base_url}/attendance/{self.batch_id}"
-            today = datetime.now().strftime("%Y-%m-%d")
+            # VERIFIED endpoint from DevTools
+            endpoint = f"https://acerp.acharyaerptech.in/api/academic/students/{self.student_id}/studentAttendance"
             
-            params = {
-                'date': today,  # TODO: Verify if this parameter is needed
-            }
-            
-            print(f"📚 Fetching attendance data for batch {self.batch_id}...")
+            print(f"📚 Fetching attendance data for student {self.student_id}...")
             
             response = await self.client.get(
                 endpoint,
-                params=params,
                 headers=self.session_headers
             )
             
@@ -354,6 +274,7 @@ class AcharyaScraper:
             
             if response.status_code != 200:
                 print(f"✗ Failed to fetch attendance: {response.status_code}")
+                print(f"   Endpoint: {endpoint}")
                 print(f"   Response: {response.text[:200]}")
                 return []
             
@@ -370,8 +291,9 @@ class AcharyaScraper:
                 print(f"✓ Fetched attendance for {len(attendance_list)} subjects")
                 return attendance_list
             else:
-                print("⚠️  Could not parse attendance data - check field names in DevTools")
-                print(f"   Raw response keys: {list(raw_data.keys())}")
+                print("⚠️  Could not parse attendance data")
+                print(f"   Response keys: {list(raw_data.keys())}")
+                print(f"   Full response for debugging: {raw_data}")
                 return []
         
         except Exception as e:
