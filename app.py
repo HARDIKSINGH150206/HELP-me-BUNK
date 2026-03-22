@@ -10,6 +10,10 @@ load_dotenv()  # Load environment variables from .env file
 
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for
 from flask_cors import CORS
+from flask_caching import Cache
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+from flask_wtf.csrf import CSRFProtect
 from functools import wraps
 import json
 import os
@@ -153,6 +157,39 @@ try:
 except Exception as e:
     print(f"⚠ Database initialization failed: {e}")
     print("  Make sure MONGODB_URI environment variable is set correctly")
+
+# ===== CACHING SETUP (Redis) =====
+cache_config = {
+    'CACHE_TYPE': 'redis',
+    'CACHE_REDIS_URL': os.getenv('REDIS_URL', 'redis://localhost:6379/0'),
+    'CACHE_DEFAULT_TIMEOUT': 300,  # 5 minutes default
+    'CACHE_KEY_PREFIX': 'help_me_bunk:'
+}
+
+try:
+    cache = Cache(app, config=cache_config)
+    print("✓ Redis caching enabled")
+except Exception as e:
+    # Fallback to simple in-memory cache if Redis not available
+    cache_config['CACHE_TYPE'] = 'simple'
+    cache = Cache(app, config=cache_config)
+    print("⚠ Redis not available, using in-memory cache")
+
+# ===== RATE LIMITING SETUP =====
+limiter = Limiter(
+    app=app,
+    key_func=get_remote_address,
+    default_limits=["200 per day", "50 per hour"],
+    storage_uri=os.getenv('REDIS_URL', 'memory://'),
+    storage_options={'DIFFERENTIATOR': lambda: session.get('user_id', 'anonymous')}
+)
+print("✓ Rate limiting enabled (200/day, 50/hour per user)")
+
+# ===== CSRF PROTECTION SETUP =====
+csrf = CSRFProtect(app)
+# Disable CSRF for API endpoints (we use session-based auth instead)
+csrf.exempt('api')
+print("✓ CSRF protection enabled")
 
 # Initialize auto-sync scheduler
 from scheduler import init_scheduler, schedule_user_sync, remove_user_sync, get_user_schedule, shutdown_scheduler
@@ -463,6 +500,7 @@ def reset_config():
 
 @app.route('/api/latest-data')
 @login_required
+@cache.cached(timeout=300, query_string=True)  # Cache for 5 minutes
 def get_latest_data():
     """Get the most recent attendance data for the logged-in user"""
     try:
@@ -592,6 +630,7 @@ def calculate_bunks():
 
 @app.route('/api/scrape', methods=['POST'])
 @login_required
+@limiter.limit("5 per hour")  # Max 5 scrapes per hour per user
 def start_scrape():
     """Start scraping process"""
     try:
@@ -617,6 +656,7 @@ def start_scrape():
 
 @app.route('/api/auto-sync', methods=['POST'])
 @login_required
+@limiter.limit("10 per hour")  # Max 10 manual syncs per hour per user
 def auto_sync():
     """Auto-sync with ERP using stored credentials"""
     try:
@@ -823,6 +863,7 @@ def delete_subject_route():
 
 @app.route('/api/timetable')
 @login_required
+@cache.cached(timeout=600, query_string=True)  # Cache for 10 minutes
 def get_timetable_route():
     """Get user's timetable with bunkability info"""
     try:

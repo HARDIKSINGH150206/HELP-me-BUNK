@@ -93,7 +93,7 @@
       "erp_overall_present": null,
       "erp_overall_total": null,
       "erp_overall_percentage": 56.92,
-      "erp_overall_updated": "2026-03-21T23:29:20.299798",
+      "erp_overall_updated": "2026-03-22T12:04:46.198465",
       "telegram_chat_id": "8325368782",
       "auto_sync_enabled": true,
       "auto_sync_interval": 1
@@ -342,63 +342,63 @@
         "present": 6,
         "total": 9,
         "percentage": 66.67,
-        "last_updated": "2026-03-21T23:29:20.299770"
+        "last_updated": "2026-03-22T12:04:46.198414"
       },
       "Analysis & Design of Algorithms Lab": {
         "subject": "Analysis & Design of Algorithms Lab",
         "present": 1,
         "total": 4,
         "percentage": 25.0,
-        "last_updated": "2026-03-21T23:29:20.299783"
+        "last_updated": "2026-03-22T12:04:46.198433"
       },
       "Biology For Computer Engineers": {
         "subject": "Biology For Computer Engineers",
         "present": 3,
         "total": 4,
         "percentage": 75.0,
-        "last_updated": "2026-03-21T23:29:20.299785"
+        "last_updated": "2026-03-22T12:04:46.198438"
       },
       "Database Management Systems": {
         "subject": "Database Management Systems",
         "present": 9,
         "total": 15,
         "percentage": 60.0,
-        "last_updated": "2026-03-21T23:29:20.299787"
+        "last_updated": "2026-03-22T12:04:46.198442"
       },
       "Discrete Mathematical Structures": {
         "subject": "Discrete Mathematical Structures",
         "present": 7,
         "total": 13,
         "percentage": 53.85,
-        "last_updated": "2026-03-21T23:29:20.299789"
+        "last_updated": "2026-03-22T12:04:46.198445"
       },
       "Forum Activity": {
         "subject": "Forum Activity",
         "present": 1,
         "total": 1,
         "percentage": 100.0,
-        "last_updated": "2026-03-21T23:29:20.299790"
+        "last_updated": "2026-03-22T12:04:46.198449"
       },
       "Microcontrollers": {
         "subject": "Microcontrollers",
         "present": 7,
         "total": 12,
         "percentage": 58.33,
-        "last_updated": "2026-03-21T23:29:20.299792"
+        "last_updated": "2026-03-22T12:04:46.198453"
       },
       "UI/UX": {
         "subject": "UI/UX",
         "present": 2,
         "total": 4,
         "percentage": 50.0,
-        "last_updated": "2026-03-21T23:29:20.299793"
+        "last_updated": "2026-03-22T12:04:46.198456"
       },
       "Universal human values course": {
         "subject": "Universal human values course",
         "present": 1,
         "total": 3,
         "percentage": 33.33,
-        "last_updated": "2026-03-21T23:29:20.299795"
+        "last_updated": "2026-03-22T12:04:46.198460"
       }
     },
     "8c6a6e25-0182-44c7-ab1d-": {
@@ -2032,6 +2032,60 @@
       },
       {
         "scraped_at": "2026-03-21T23:29:20.299803",
+        "subject_count": 9,
+        "total_present": 37,
+        "total_classes": 65,
+        "overall_percentage": 56.92,
+        "subjects_snapshot": [
+          {
+            "subject": "Analysis & Design of Algorithms",
+            "present": 6,
+            "total": 9
+          },
+          {
+            "subject": "Analysis & Design of Algorithms Lab",
+            "present": 1,
+            "total": 4
+          },
+          {
+            "subject": "Biology For Computer Engineers",
+            "present": 3,
+            "total": 4
+          },
+          {
+            "subject": "Database Management Systems",
+            "present": 9,
+            "total": 15
+          },
+          {
+            "subject": "Discrete Mathematical Structures",
+            "present": 7,
+            "total": 13
+          },
+          {
+            "subject": "Forum Activity",
+            "present": 1,
+            "total": 1
+          },
+          {
+            "subject": "Microcontrollers",
+            "present": 7,
+            "total": 12
+          },
+          {
+            "subject": "UI/UX",
+            "present": 2,
+            "total": 4
+          },
+          {
+            "subject": "Universal human values course",
+            "present": 1,
+            "total": 3
+          }
+        ]
+      },
+      {
+        "scraped_at": "2026-03-22T12:04:46.198475",
         "subject_count": 9,
         "total_present": 37,
         "total_classes": 65,

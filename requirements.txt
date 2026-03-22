@@ -3,10 +3,14 @@ webdriver-manager
 colorama
 flask
 flask-cors
+flask-caching
+flask-limiter
+flask-wtf
 werkzeug
 pymongo[srv]
 python-dotenv
 gunicorn
+redis
 certifi
 pytesseract
 Pillow

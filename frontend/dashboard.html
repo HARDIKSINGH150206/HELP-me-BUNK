@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -24,7 +25,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         header h1 {
@@ -57,7 +58,7 @@
             border-radius: 8px;
             padding: 1.5rem;
             margin-bottom: 1.5rem;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
 
         .card h2 {
@@ -164,6 +165,7 @@
         }
     </style>
 </head>
+
 <body>
     <header>
         <h1>Help Me Bunk - Dashboard</h1>
@@ -220,7 +222,7 @@
             try {
                 const config = await apiClient.getConfig();
                 const content = document.getElementById('configContent');
-                
+
                 if (config.config) {
                     content.innerHTML = `
                         <div class="form-group">
@@ -248,7 +250,7 @@
             try {
                 const data = await apiClient.getLatestData();
                 const content = document.getElementById('attendanceContent');
-                
+
                 if (data.data && data.data.length > 0) {
                     const html = data.data.map(subject => `
                         <div class="stat-box">
@@ -281,7 +283,7 @@
         document.getElementById('scrapeBtn').addEventListener('click', async () => {
             const btn = document.getElementById('scrapeBtn');
             const status = document.getElementById('scrapeStatus');
-            
+
             btn.disabled = true;
             status.innerHTML = '<div class="loading">Scraping attendance...</div>';
 
@@ -309,4 +311,5 @@
         loadAttendance();
     </script>
 </body>
+
 </html>
