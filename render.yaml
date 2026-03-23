@@ -1,9 +1,9 @@
 services:
   - type: web
-    name: attendance-api
+    name: attendance-dashboard
     runtime: python-3.11
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn app:app --bind 0.0.0.0:10000 --workers 2 --worker-class sync --timeout 120
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT --workers 2 --worker-class sync --timeout 120
     plan: free
     envVars:
       - key: PYTHON_VERSION
@@ -12,5 +12,7 @@ services:
         sync: false
       - key: SECRET_KEY
         sync: false
-      - key: FRONTEND_URL
-        value: https://your-vercel-app.vercel.app
+      - key: FLASK_ENV
+        value: production
+      - key: DEBUG
+        value: false
